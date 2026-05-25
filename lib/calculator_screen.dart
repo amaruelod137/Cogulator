@@ -12,7 +12,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   String number1 = ""; // 0-9
   String operand = ""; // + - * /
   String number2 = ""; // 0-9
-
+  String formula = "";
 
   @override
   Widget build(BuildContext context) {
@@ -29,15 +29,34 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               child: Container(
                 alignment: Alignment.bottomRight,
                 padding: const EdgeInsets.all(16),
-                child: Text(
-                  "$number1$operand$number2".isEmpty
-                    ?"0"
-                    :"$number1$operand$number2", 
-                  style: const TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.end,
+                child: Column( 
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // small formula display
+                    Text(
+                      "$formula",
+                      style: const TextStyle(
+                        fontSize: 24,
+                        color: Colors.grey,
+                      ),
+                      textAlign: TextAlign.end,
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Main / Result Display
+                    Text(
+                      "$number1$operand$number2".isEmpty
+                        ? "0"
+                        : "$number1$operand$number2", 
+                      style: const TextStyle(
+                        fontSize: 48,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.end,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -118,6 +137,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     final double num2 = double.parse(number2);
 
     var result = 0.0;
+
     switch (operand) {
       case Btn.add:
         result = num1 + num2;
@@ -135,6 +155,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     }
 
     setState(() {
+      formula = "$number1$operand$number2";
       number1 = "$result";
 
       if(number1.endsWith(".0")){
@@ -173,6 +194,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       number1="";
       operand="";
       number2="";
+      formula="";
     });
   }
 
@@ -194,7 +216,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         // if is operand and not "."
     if(value != Btn.dot && int.tryParse(value) == null) {
       // operand pressed
-      if(operand.isNotEmpty && number2.isNotEmpty){
+      if(operand.isNotEmpty && number2.isNotEmpty && number1.isNotEmpty){
         calculate();
 
       }
