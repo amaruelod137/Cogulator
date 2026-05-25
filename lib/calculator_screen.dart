@@ -62,7 +62,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   Widget buildButton(value){
     return Padding(
-      padding: const EdgeInsets.all(4.0),
+      padding: const EdgeInsets.all(2.0),
       child: Material(
         color: getBtnColor(value),
         clipBehavior: Clip.hardEdge,
@@ -75,7 +75,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         child: InkWell(
           onTap: () => onBtnTap(value),
           child: Center(
-            child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24,)),
+            child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 36,)),
           )
         ),
       ),
