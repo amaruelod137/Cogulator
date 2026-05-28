@@ -13,6 +13,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   String operand = ""; // + - * /
   String number2 = ""; // 0-9
   String formula = "";
+  
+  String promptMessage = "";
+  bool canRefresh = false;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +36,18 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisSize: MainAxisSize.min,
                   children: [
+
+                    // prompt message
+                    Text(
+                      promptMessage,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        color: Colors.orange,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.end,
+                    ),
+
                     // small formula display
                     Text(
                       "$formula",
@@ -45,6 +60,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
                     const SizedBox(height: 8),
 
+
+                    const SizedBox(height: 8),
                     // Main / Result Display
                     Text(
                       "$number1$operand$number2".isEmpty
@@ -67,7 +84,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             children: Btn.buttonValues
                 .map(
                   (value) => SizedBox(
-                    width:value==Btn.n0?screenSize.width/2: (screenSize.width / 4),
+                    width: value == Btn.lpar || value == Btn.rpar 
+                    ? screenSize.width / 8
+                    : (screenSize.width / 4),
                     height: screenSize.width / 5,
                     child: buildButton(value)
                   ),
@@ -124,11 +143,21 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       return;
     }
 
-    appendValue(value);
+    if(canRefresh == true){
+      clearAll();
+      appendValue(value);
+      canRefresh = false;
+    }
+    else{
+      appendValue(value);
+    }
   }
 
   // calculation function
   void calculate(){
+    setState(() {
+      promptMessage = "Please try to guess first";
+    });
     if(number1.isEmpty) return;
     if(operand.isEmpty) return;
     if(number2.isEmpty) return;
@@ -157,6 +186,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     setState(() {
       formula = "$number1$operand$number2";
       number1 = "$result";
+      canRefresh = true;
 
       if(number1.endsWith(".0")){
         number1 = number1.substring(0,number1.length-2);

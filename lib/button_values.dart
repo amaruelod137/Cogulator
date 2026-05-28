@@ -8,6 +8,9 @@ class Btn {
   static const String subtract = "-";
   static const String calculate = "=";
   static const String dot = ".";
+  static const String lpar = "(";
+  static const String rpar = ")";
+
 
   static const String n0 = "0";
   static const String n1 = "1";
@@ -37,8 +40,10 @@ class Btn {
     n2,
     n3,
     add,
-    n0,
     dot,
-    calculate,
+    n0,
+    lpar,
+    rpar,
+    calculate, 
   ];
 }
