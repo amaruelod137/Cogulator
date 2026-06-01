@@ -13,9 +13,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   String operand = ""; // + - * /
   String number2 = ""; // 0-9
   String formula = "";
-  
+
+  String correctAnswer = "";
   String promptMessage = "";
+
   bool canRefresh = false;
+  bool isGuessing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +40,18 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
 
+                    // small formula display
+                    Text(
+                      "$formula",
+                      style: const TextStyle(
+                        fontSize: 40,
+                        color: Colors.grey,
+                      ),
+                      textAlign: TextAlign.end,
+                    ),
+
+                    const SizedBox(height: 8),
+
                     // prompt message
                     Text(
                       promptMessage,
@@ -47,19 +62,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                       ),
                       textAlign: TextAlign.end,
                     ),
-
-                    // small formula display
-                    Text(
-                      "$formula",
-                      style: const TextStyle(
-                        fontSize: 24,
-                        color: Colors.grey,
-                      ),
-                      textAlign: TextAlign.end,
-                    ),
-
-                    const SizedBox(height: 8),
-
 
                     const SizedBox(height: 8),
                     // Main / Result Display
@@ -139,7 +141,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     }
 
     if(value == Btn.calculate){
-      calculate();
+      
+      if(isGuessing){
+        checkGuess();
+      }
+      else{
+        calculate();
+      }
       return;
     }
 
@@ -156,7 +164,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   // calculation function
   void calculate(){
     setState(() {
-      promptMessage = "Please try to guess first";
+     // promptMessage = "Please try to guess first";
     });
     if(number1.isEmpty) return;
     if(operand.isEmpty) return;
@@ -185,18 +193,42 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
     setState(() {
       formula = "$number1$operand$number2";
-      number1 = "$result";
-      canRefresh = true;
+      correctAnswer = "$result";
+      promptMessage = "Please try to guess first:";
+      isGuessing = true;
 
       if(number1.endsWith(".0")){
         number1 = number1.substring(0,number1.length-2);
       }
 
+      number1 = "";
       operand = "";
       number2 = "";
     });
 
   }
+
+
+  // function to check the user's guess 
+  void checkGuess(){
+
+  if(number1 == correctAnswer){
+
+    setState(() {
+      promptMessage = "Well done!";
+      isGuessing = false;
+      canRefresh = true;
+    });
+
+  }
+  else{
+
+    setState(() {
+      promptMessage = "Try again";
+    });
+
+  }
+}
 
   // convert to percentage function
   void convertToPercentage(){
@@ -225,6 +257,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       operand="";
       number2="";
       formula="";
+      promptMessage = "";
+      isGuessing = false;
+      correctAnswer = "";
     });
   }
 
