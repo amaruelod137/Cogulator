@@ -9,6 +9,8 @@ class CalculatorScreen extends StatefulWidget {
 }
 
 class _CalculatorScreenState extends State<CalculatorScreen> {
+  String expression = "";
+
   String number1 = ""; // 0-9
   String operand = ""; // + - * /
   String number2 = ""; // 0-9
@@ -42,7 +44,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
                     // small formula display
                     Text(
-                      "$formula",
+                      formula,
                       style: const TextStyle(
                         fontSize: 40,
                         color: Colors.grey,
@@ -55,6 +57,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     // prompt message
                     Text(
                       promptMessage,
+                      //correctAnswer,
                       style: const TextStyle(
                         fontSize: 20,
                         color: Colors.orange,
@@ -66,9 +69,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                     const SizedBox(height: 8),
                     // Main / Result Display
                     Text(
-                      "$number1$operand$number2".isEmpty
+                      expression.isEmpty
                         ? "0"
-                        : "$number1$operand$number2", 
+                        : expression, 
                       style: const TextStyle(
                         fontSize: 48,
                         fontWeight: FontWeight.bold,
@@ -163,72 +166,147 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   // calculation function
   void calculate(){
+    if (expression.isEmpty) return;
+
+    final result = evaluateExpression(expression);
+    
     setState(() {
-     // promptMessage = "Please try to guess first";
-    });
-    if(number1.isEmpty) return;
-    if(operand.isEmpty) return;
-    if(number2.isEmpty) return;
-
-    final double num1 = double.parse(number1);
-    final double num2 = double.parse(number2);
-
-    var result = 0.0;
-
-    switch (operand) {
-      case Btn.add:
-        result = num1 + num2;
-        break;
-      case Btn.subtract:
-        result = num1 - num2;
-        break;
-      case Btn.multiply:
-        result = num1 * num2;
-        break;
-      case Btn.divide:
-        result = num1 / num2;
-        break;
-      default:
-    }
-
-    setState(() {
-      formula = "$number1$operand$number2";
+      formula = expression;
+      expression = "";
       correctAnswer = "$result";
       promptMessage = "Please try to guess first:";
       isGuessing = true;
+    });
 
-      if(number1.endsWith(".0")){
-        number1 = number1.substring(0,number1.length-2);
+  }
+
+  double evaluateExpression(String expr) {
+    // solve parentheses first
+    while (expr.contains("(")) {
+      int close = expr.indexOf(")");
+      if (close == -1) break;
+
+      int open = expr.lastIndexOf("(", close);
+      if (open == -1) break;
+
+      String inner = expr.substring(open + 1, close);
+
+      double innerResult = evaluateExpression(inner);
+
+      expr = expr.replaceRange(
+        open,
+        close + 1,
+        innerResult.toString(),
+      );
+    }
+    
+    expr = expr.replaceAll(Btn.multiply, "*");
+    expr = expr.replaceAll(Btn.divide, "/");
+
+    List<String> tokens = [];
+    String current = "";
+
+    // split into numbers + operators
+    for (int i = 0; i < expr.length; i++) {
+      String char = expr[i];
+
+      if ("+-*/".contains(char)) {
+        tokens.add(current);
+        tokens.add(char);
+        current = "";
+      } else {
+        current += char;
       }
+    }
 
-      number1 = "";
-      operand = "";
-      number2 = "";
-    });
+    tokens.add(current);
 
+    // FIRST PASS: multiplication and division
+    for (int i = 0; i < tokens.length; i++) {
+      if (tokens[i] == "*" || tokens[i] == "/") {
+        double left = double.parse(tokens[i - 1]);
+        double right = double.parse(tokens[i + 1]);
+
+        double result =
+            tokens[i] == "*"
+                ? left * right
+                : left / right;
+
+        tokens.replaceRange(
+          i - 1,
+          i + 2,
+          [result.toString()],
+        );
+
+        i--;
+      }
+    }
+
+    // SECOND PASS: addition and subtraction
+    double result = double.parse(tokens[0]);
+
+    for (int i = 1; i < tokens.length; i += 2) {
+      String op = tokens[i];
+      double next = double.parse(tokens[i + 1]);
+
+      if (op == "+") {
+        result += next;
+      } else {
+        result -= next;
+      }
+    }
+
+    return result;
   }
+/*
+    // left to right calculation
+    double result = double.parse(tokens[0]);
 
+    for (int i = 1; i < tokens.length; i += 2) {
+      String op = tokens[i];
+      double next = double.parse(tokens[i + 1]);
 
+      switch (op) {
+        case "+":
+          result += next;
+          break;
+
+        case "-":
+          result -= next;
+          break;
+
+        case "*":
+          result *= next;
+          break;
+
+        case "/":
+          result /= next;
+          break;
+      }
+    }
+
+    return result;
+  }
+*/
   // function to check the user's guess 
-  void checkGuess(){
+  void checkGuess() {
+    if (expression.isEmpty) return;
 
-  if(number1 == correctAnswer){
+    final guess = double.tryParse(expression);
+    final answer = double.tryParse(correctAnswer);
 
-    setState(() {
-      promptMessage = "Well done!";
-      isGuessing = false;
-      canRefresh = true;
-    });
-
+    if (guess != null && answer != null && guess == answer) {
+      setState(() {
+        promptMessage = "Well done!";
+        isGuessing = false;
+        canRefresh = true;
+      });
+    } else {
+      setState(() {
+        promptMessage = "Try again";
+      });
+    }
   }
-  else{
-
-    setState(() {
-      promptMessage = "Try again";
-    });
-
-  }
-}
 
   // convert to percentage function
   void convertToPercentage(){
@@ -253,10 +331,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   // clear function
   void clearAll(){
     setState(() {
-      number1="";
-      operand="";
-      number2="";
+
       formula="";
+      expression = "";
       promptMessage = "";
       isGuessing = false;
       correctAnswer = "";
@@ -265,6 +342,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   // delete function
   void delete(){
+    /*
     if(number2.isNotEmpty){
       number2=number2.substring(0,number2.length - 1);
     }
@@ -274,17 +352,25 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     else if(number1.isNotEmpty){
       number1=number1.substring(0,number1.length - 1);
     }
-    setState(() {});
+    */
+    if(expression.isEmpty) return;
+
+    setState(() {
+      expression =
+        expression.substring(0, expression.length - 1);
+    });
   }
 
   void appendValue(String value){
+    expression += value;
+    /*
         // if is operand and not "."
     if(value != Btn.dot && int.tryParse(value) == null) {
-      // operand pressed
+      /* Forced immediate calculation
       if(operand.isNotEmpty && number2.isNotEmpty && number1.isNotEmpty){
         calculate();
-
       }
+      */
       operand = value;
     } 
     // assign value to number1 variable
@@ -301,6 +387,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       }
       number2 += value;
     }
+    */
 
     setState(() {
     });
