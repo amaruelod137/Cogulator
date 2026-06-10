@@ -1,6 +1,7 @@
 import 'package:basic_calculator/button_values.dart';
 import 'package:flutter/material.dart';
 import 'package:math_expressions/math_expressions.dart';
+import 'dart:async';
 
 
 class CalculatorScreen extends StatefulWidget {
@@ -21,6 +22,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   bool canRefresh = false;
   bool isGuessing = false;
 
+  // variables for dual purpose evaluate button
+  Timer? revealTimer; 
+  double holdProgress = 0.0;
+  bool isHoldingEquals = false;
+  bool longPressTriggered = false;
+
   @override
   Widget build(BuildContext context) {
     final screenSize=MediaQuery.of(context).size;
@@ -40,7 +47,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-
+                    if (!isGuessing && formula.isEmpty)
+                      const Text(
+                        "💡 Press and hold '=' to see answer",
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
                     // small formula display
                     Text(
                       formula,
@@ -55,8 +70,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
                     // prompt message
                     Text(
-                      //promptMessage,
-                      correctAnswer,
+                      promptMessage,
+                      //correctAnswer,
                       style: const TextStyle(
                         fontSize: 20,
                         color: Colors.orange,
@@ -114,10 +129,65 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           ),
           borderRadius: BorderRadius.circular(100),
         ),
+
         child: InkWell(
-          onTap: () => onBtnTap(value),
+          // tap/hold 
+          onTapDown: (_) {
+            if (value == Btn.calculate) {
+              startRevealHold();
+            }
+          },
+
+          onTapUp: (_) {
+            if (value == Btn.calculate) {
+              cancelRevealHold();
+            }
+          },
+
+          onTapCancel: () {
+            if (value == Btn.calculate) {
+              cancelRevealHold();
+            }
+          },
+
+          // regualar tap
+          onTap: () {
+            if (value == Btn.calculate && longPressTriggered) {
+              longPressTriggered = false;
+              return;
+            }
+            onBtnTap(value);         
+          },
+/*
           child: Center(
-            child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 36,)),
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold, 
+                fontSize: 36),
+*/
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+
+              if (value == Btn.calculate && holdProgress > 0)
+                SizedBox(
+                  width: 70,
+                  height: 70,
+                  child: CircularProgressIndicator(
+                    value: holdProgress,
+                    strokeWidth: 4,
+                  ),
+                ),
+
+              Text(
+                value,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 36,
+                ),
+              ),
+            ],
           )
         ),
       ),
@@ -125,7 +195,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   }
 
 
-  // ##########
+  // Button functions
   void onBtnTap(String value){
     if(value == Btn.del) {
       delete();
@@ -184,6 +254,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     }
   }
 
+  // parse + evaluate
   double evaluateExpression(String expr) {
     expr = expr.replaceAll(Btn.multiply, "*");
     expr = expr.replaceAll(Btn.divide, "/");
@@ -276,6 +347,74 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     */
   }
 
+  // long hold to reveal answer
+
+  void revealAnswer(){
+    if (expression.isEmpty) return;
+
+    try {
+      final result = evaluateExpression(expression);
+      
+      setState(() {
+        formula = expression;
+        expression = "$result";
+        promptMessage = "Answer revealed";
+        isGuessing = false;
+        canRefresh = true;
+      });
+    } catch (e) {
+      setState(() {
+        promptMessage = "Invalid expression";
+      });
+    }
+  }
+
+
+  // start hold function
+  void startRevealHold() {
+    if (isGuessing) return;
+
+    
+    isHoldingEquals = true;
+    holdProgress = 0;
+    
+     //milliseconds
+    const totalDuration = 2500;
+    const tickRate = 50;
+
+    revealTimer?.cancel();
+
+    revealTimer = Timer.periodic(
+      const Duration(milliseconds: tickRate),
+      (timer) {
+        setState(() {
+          holdProgress += tickRate / totalDuration;
+        });
+        if (holdProgress >= 1) {
+          timer.cancel();
+
+          holdProgress = 0;
+          isHoldingEquals = false;
+
+          longPressTriggered = true;
+
+          revealAnswer();
+        }
+      },
+    );
+  }
+
+  // cancel hold function
+  void cancelRevealHold() {
+    revealTimer?.cancel();
+
+    if (holdProgress > 0) {
+      setState(() {
+        holdProgress = 0;
+        isHoldingEquals = false;
+      });
+    }
+  }
   // function to check the user's guess 
   void checkGuess() {
     if (expression.isEmpty) return;
@@ -299,22 +438,18 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   // convert to percentage function
   void convertToPercentage(){
     // TODO: rewrite for expression-based calculator
-    /*
-    if(number1.isNotEmpty && operand.isNotEmpty && number2.isNotEmpty){
-      // calculate before conversion
-      calculate();
-    }
-    if(operand.isNotEmpty){
-      // cant convert
+    if(expression.isEmpty) return;
+    final number = double.tryParse(expression);
+
+    if (number == null) {
+      setState(() {
+        promptMessage = "Invalid percentage";
+      });
       return;
     }
-    
-    final number = double.parse(number1);
     setState(() {
-      number1="${(number / 100)}";
-      operand = "";
-      number2 = "";
-    });*/
+      expression = (number / 100).toString();
+    });
   }
 
 
