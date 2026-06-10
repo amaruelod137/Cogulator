@@ -1,5 +1,7 @@
 import 'package:basic_calculator/button_values.dart';
 import 'package:flutter/material.dart';
+import 'package:math_expressions/math_expressions.dart';
+
 
 class CalculatorScreen extends StatefulWidget {
   const CalculatorScreen({super.key});
@@ -11,9 +13,6 @@ class CalculatorScreen extends StatefulWidget {
 class _CalculatorScreenState extends State<CalculatorScreen> {
   String expression = "";
 
-  String number1 = ""; // 0-9
-  String operand = ""; // + - * /
-  String number2 = ""; // 0-9
   String formula = "";
 
   String correctAnswer = "";
@@ -56,8 +55,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
                     // prompt message
                     Text(
-                      promptMessage,
-                      //correctAnswer,
+                      //promptMessage,
+                      correctAnswer,
                       style: const TextStyle(
                         fontSize: 20,
                         color: Colors.orange,
@@ -168,19 +167,35 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   void calculate(){
     if (expression.isEmpty) return;
 
-    final result = evaluateExpression(expression);
-    
-    setState(() {
-      formula = expression;
-      expression = "";
-      correctAnswer = "$result";
-      promptMessage = "Please try to guess first:";
-      isGuessing = true;
-    });
-
+    try{
+      final result = evaluateExpression(expression);
+      
+      setState(() {
+        formula = expression;
+        expression = "";
+        correctAnswer = "$result";
+        promptMessage = "Please try to guess first:";
+        isGuessing = true;
+      });
+    } catch (e) {
+      setState(() {
+        promptMessage = "Invalid expression";
+      });
+    }
   }
 
   double evaluateExpression(String expr) {
+    expr = expr.replaceAll(Btn.multiply, "*");
+    expr = expr.replaceAll(Btn.divide, "/");
+
+    GrammarParser p = GrammarParser();
+    Expression exp = p.parse(expr);
+
+    ContextModel cm = ContextModel();
+
+    return exp.evaluate(EvaluationType.REAL, cm);
+
+    /*
     // solve parentheses first
     while (expr.contains("(")) {
       int close = expr.indexOf(")");
@@ -210,7 +225,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     for (int i = 0; i < expr.length; i++) {
       String char = expr[i];
 
-      if ("+-*/".contains(char)) {
+      // To restore: remove multi-line comment start indicator from line below 
+      if ("+-*//*".contains(char)) {
         tokens.add(current);
         tokens.add(char);
         current = "";
@@ -257,37 +273,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     }
 
     return result;
+    */
   }
-/*
-    // left to right calculation
-    double result = double.parse(tokens[0]);
 
-    for (int i = 1; i < tokens.length; i += 2) {
-      String op = tokens[i];
-      double next = double.parse(tokens[i + 1]);
-
-      switch (op) {
-        case "+":
-          result += next;
-          break;
-
-        case "-":
-          result -= next;
-          break;
-
-        case "*":
-          result *= next;
-          break;
-
-        case "/":
-          result /= next;
-          break;
-      }
-    }
-
-    return result;
-  }
-*/
   // function to check the user's guess 
   void checkGuess() {
     if (expression.isEmpty) return;
@@ -310,6 +298,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   // convert to percentage function
   void convertToPercentage(){
+    // TODO: rewrite for expression-based calculator
+    /*
     if(number1.isNotEmpty && operand.isNotEmpty && number2.isNotEmpty){
       // calculate before conversion
       calculate();
@@ -324,7 +314,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       number1="${(number / 100)}";
       operand = "";
       number2 = "";
-    });
+    });*/
   }
 
 
@@ -342,17 +332,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   // delete function
   void delete(){
-    /*
-    if(number2.isNotEmpty){
-      number2=number2.substring(0,number2.length - 1);
-    }
-    else if(operand.isNotEmpty){
-      operand = "";
-    }
-    else if(number1.isNotEmpty){
-      number1=number1.substring(0,number1.length - 1);
-    }
-    */
     if(expression.isEmpty) return;
 
     setState(() {
@@ -363,32 +342,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   void appendValue(String value){
     expression += value;
-    /*
-        // if is operand and not "."
-    if(value != Btn.dot && int.tryParse(value) == null) {
-      /* Forced immediate calculation
-      if(operand.isNotEmpty && number2.isNotEmpty && number1.isNotEmpty){
-        calculate();
-      }
-      */
-      operand = value;
-    } 
-    // assign value to number1 variable
-    else if(number1.isEmpty || operand.isEmpty){
-      if(value==Btn.dot && number1.contains(Btn.dot)) return;
-      if(value==Btn.dot && (number1.isEmpty || number1 == Btn.n0)){
-        value = "0.";
-      }
-      number1 += value;
-    } else if(number2.isEmpty || operand.isNotEmpty){
-      if(value==Btn.dot && number2.contains(Btn.dot)) return;
-      if(value==Btn.dot && (number2.isEmpty || number2==Btn.dot)){
-        value = "0.";
-      }
-      number2 += value;
-    }
-    */
-
     setState(() {
     });
   }
