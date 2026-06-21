@@ -29,7 +29,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   bool longPressTriggered = false;
 
   // display functions
-  List<String> incorrectGuesses = [];
+  List<String> incorrectGuesses = [
+    "5",
+    "12",
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -47,26 +50,20 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 // Left history panel
                 Container(
                   width: 90,
+                  height: 200,
                   color: Colors.grey,
                   child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 20),
                     itemCount: incorrectGuesses.length,
                     itemBuilder: (context, index) {
                       return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.red.shade100,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            incorrectGuesses[index],
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 6),
+                        child: Text(
+                          incorrectGuesses[index],
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            // fontWeight: FontWeight.bold,
                           ),
                         ),
                       );
@@ -85,15 +82,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (!isGuessing && formula.isEmpty)
-                            const Text(
-                              "💡 Press and hold '=' to see answer",
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.grey,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
+
                           // small formula display
                           Text(
                             formula,
@@ -138,7 +127,19 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               ),
               ),
 
-        
+
+          Container(
+            alignment: Alignment.topRight,
+            padding: EdgeInsets.symmetric(vertical: 15, horizontal:20),
+            child: Text(
+              "💡 For answer hold '='",
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
           // buttons
           Wrap(
             children: Btn.buttonValues
@@ -393,7 +394,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       });
     } else {
       setState(() {
+        incorrectGuesses.add(expression);
         promptMessage = "Try again";
+        expression = "";
       });
     }
   }
