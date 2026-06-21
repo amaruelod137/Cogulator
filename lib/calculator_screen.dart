@@ -28,6 +28,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   bool isHoldingEquals = false;
   bool longPressTriggered = false;
 
+  // display functions
+  List<String> incorrectGuesses = [];
+
   @override
   Widget build(BuildContext context) {
     final screenSize=MediaQuery.of(context).size;
@@ -36,67 +39,105 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         bottom: false,
         child: Column(
           children: [
-          // output
+          
           Expanded(
-            child: SingleChildScrollView(
-              reverse: true,
-              child: Container(
-                alignment: Alignment.bottomRight,
-                padding: const EdgeInsets.all(16),
-                child: Column( 
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (!isGuessing && formula.isEmpty)
-                      const Text(
-                        "💡 Press and hold '=' to see answer",
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey,
-                          fontStyle: FontStyle.italic,
+            child: Row(
+              children: [
+                
+                // Left history panel
+                Container(
+                  width: 90,
+                  color: Colors.grey,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: incorrectGuesses.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade100,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            incorrectGuesses[index],
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
-                    // small formula display
-                    Text(
-                      formula,
-                      style: const TextStyle(
-                        fontSize: 40,
-                        color: Colors.grey,
-                      ),
-                      textAlign: TextAlign.end,
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    // prompt message
-                    Text(
-                      promptMessage,
-                      //correctAnswer,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        color: Colors.orange,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.end,
-                    ),
-
-                    const SizedBox(height: 8),
-                    // Main / Result Display
-                    Text(
-                      expression.isEmpty
-                        ? "0"
-                        : expression, 
-                      style: const TextStyle(
-                        fontSize: 48,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.end,
-                    ),
-                  ],
+                      );
+                    },
+                  ),
                 ),
+                
+                // Entire Display
+                Expanded(
+                  child: SingleChildScrollView(
+                    reverse: true,
+                    child: Container(
+                      alignment: Alignment.bottomRight,
+                      padding: const EdgeInsets.all(16),
+                      child: Column( 
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (!isGuessing && formula.isEmpty)
+                            const Text(
+                              "💡 Press and hold '=' to see answer",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.grey,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          // small formula display
+                          Text(
+                            formula,
+                            style: const TextStyle(
+                              fontSize: 40,
+                              color: Colors.grey,
+                            ),
+                            textAlign: TextAlign.end,
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          // prompt message
+                          Text(
+                            promptMessage,
+                            //correctAnswer,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              color: Colors.orange,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.end,
+                          ),
+
+                          const SizedBox(height: 8),
+                          // Main / Result Display
+                          Text(
+                            expression.isEmpty
+                              ? "0"
+                              : expression, 
+                            style: const TextStyle(
+                              fontSize: 48,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.end,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),)
+              ],
               ),
-            ),
-          ),
+              ),
+
         
           // buttons
           Wrap(
@@ -266,85 +307,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
     return exp.evaluate(EvaluationType.REAL, cm);
 
-    /*
-    // solve parentheses first
-    while (expr.contains("(")) {
-      int close = expr.indexOf(")");
-      if (close == -1) break;
 
-      int open = expr.lastIndexOf("(", close);
-      if (open == -1) break;
-
-      String inner = expr.substring(open + 1, close);
-
-      double innerResult = evaluateExpression(inner);
-
-      expr = expr.replaceRange(
-        open,
-        close + 1,
-        innerResult.toString(),
-      );
-    }
-    
-    expr = expr.replaceAll(Btn.multiply, "*");
-    expr = expr.replaceAll(Btn.divide, "/");
-
-    List<String> tokens = [];
-    String current = "";
-
-    // split into numbers + operators
-    for (int i = 0; i < expr.length; i++) {
-      String char = expr[i];
-
-      // To restore: remove multi-line comment start indicator from line below 
-      if ("+-*//*".contains(char)) {
-        tokens.add(current);
-        tokens.add(char);
-        current = "";
-      } else {
-        current += char;
-      }
-    }
-
-    tokens.add(current);
-
-    // FIRST PASS: multiplication and division
-    for (int i = 0; i < tokens.length; i++) {
-      if (tokens[i] == "*" || tokens[i] == "/") {
-        double left = double.parse(tokens[i - 1]);
-        double right = double.parse(tokens[i + 1]);
-
-        double result =
-            tokens[i] == "*"
-                ? left * right
-                : left / right;
-
-        tokens.replaceRange(
-          i - 1,
-          i + 2,
-          [result.toString()],
-        );
-
-        i--;
-      }
-    }
-
-    // SECOND PASS: addition and subtraction
-    double result = double.parse(tokens[0]);
-
-    for (int i = 1; i < tokens.length; i += 2) {
-      String op = tokens[i];
-      double next = double.parse(tokens[i + 1]);
-
-      if (op == "+") {
-        result += next;
-      } else {
-        result -= next;
-      }
-    }
-
-    return result;
-    */
   }
 
   // long hold to reveal answer
