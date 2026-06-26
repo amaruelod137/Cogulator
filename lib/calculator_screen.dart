@@ -48,22 +48,23 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               children: [
                 
                 // Left history panel
-                Container(
+                buildPanel(
+                  title: "Guesses",
                   width: 90,
-                  height: 200,
-                  color: Colors.grey,
                   child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     itemCount: incorrectGuesses.length,
                     itemBuilder: (context, index) {
                       return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 6),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 2,
+                          horizontal: 6,
+                        ),
                         child: Text(
                           incorrectGuesses[index],
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 12,
-                            // fontWeight: FontWeight.bold,
                           ),
                         ),
                       );
@@ -73,53 +74,58 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 
                 // Entire Display
                 Expanded(
-                  child: SingleChildScrollView(
-                    reverse: true,
-                    child: Container(
-                      alignment: Alignment.bottomRight,
-                      padding: const EdgeInsets.all(16),
-                      child: Column( 
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
+                  child: buildPanel(
+                    title: promptMessage.isEmpty
+                      ? "Calculator"
+                      : promptMessage,
+                    child: SingleChildScrollView(
+                      reverse: true,
+                      child: Container(
+                        alignment: Alignment.bottomRight,
+                        padding: const EdgeInsets.all(16),
+                        child: Column( 
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
 
-                          // small formula display
-                          Text(
-                            formula,
-                            style: const TextStyle(
-                              fontSize: 40,
-                              color: Colors.grey,
+                            // small formula display
+                            Text(
+                              formula,
+                              style: const TextStyle(
+                                fontSize: 40,
+                                color: Colors.grey,
+                              ),
+                              textAlign: TextAlign.end,
                             ),
-                            textAlign: TextAlign.end,
-                          ),
 
-                          const SizedBox(height: 8),
+                            const SizedBox(height: 8),
 
-                          // prompt message
-                          Text(
-                            promptMessage,
-                            //correctAnswer,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              color: Colors.orange,
-                              fontWeight: FontWeight.bold,
+                            // prompt message
+                            Text(
+                              promptMessage,
+                              //correctAnswer,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                color: Colors.orange,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.end,
                             ),
-                            textAlign: TextAlign.end,
-                          ),
 
-                          const SizedBox(height: 8),
-                          // Main / Result Display
-                          Text(
-                            expression.isEmpty
-                              ? "0"
-                              : expression, 
-                            style: const TextStyle(
-                              fontSize: 48,
-                              fontWeight: FontWeight.bold,
+                            const SizedBox(height: 8),
+                            // Main / Result Display
+                            Text(
+                              expression.isEmpty
+                                ? "0"
+                                : expression, 
+                              style: const TextStyle(
+                                fontSize: 48,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.end,
                             ),
-                            textAlign: TextAlign.end,
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),)
@@ -235,6 +241,55 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       ),
     );
   }
+
+
+  Widget buildPanel({
+    required String title,
+    required Widget child,
+    double? width,
+  }) {
+    return Container(
+      width: width,
+      margin: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Colors.grey,
+          width: 2,
+        ),
+      ),
+      child: Column(
+        children: [
+
+          // Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: const BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: Colors.grey,
+                  width: 2,
+                ),
+              ),
+            ),
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+
+          // Content
+          Expanded(
+            child: child,
+          ),
+        ],
+      ),
+    );
+  }
+
 
 
   // Button functions
