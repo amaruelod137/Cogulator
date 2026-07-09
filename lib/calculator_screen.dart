@@ -29,153 +29,158 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   bool longPressTriggered = false;
 
   // display functions
-  List<String> incorrectGuesses = [
-    "5",
-    "12",
-  ];
+  List<String> incorrectGuesses = [];
 
   @override
   Widget build(BuildContext context) {
     final screenSize=MediaQuery.of(context).size;
+    const double horizontalPadding = 12;
+    final buttonAreaWidth = screenSize.width - (horizontalPadding * 2);
     return Scaffold(
       body: SafeArea(
         bottom: false,
-        child: Column(
-          children: [
-          
-          Expanded(
-            child: Row(
-              children: [
-                
-                // Left history panel
-                buildPanel(
-                  title: "Guesses",
-                  width: 90,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    itemCount: incorrectGuesses.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 2,
-                          horizontal: 6,
-                        ),
-                        child: Text(
-                          incorrectGuesses[index],
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 12,
+        child: Padding(
+          padding: const EdgeInsetsGeometry.all(2),
+          child: Column(
+            children: [
+            const SizedBox(height: 40,),
+            
+            Expanded(
+              child: Row(
+                children: [
+                  
+                  // Left history panel
+                  buildPanel(
+                    title: "Guesses",
+                    width: 90,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      itemCount: incorrectGuesses.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 2,
+                            horizontal: 6,
+                          ),
+                          child: Text(
+                            incorrectGuesses[index],
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 20,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  
+                  // Entire Display
+                  Expanded(
+                    child: buildPanel(
+                      title: promptMessage.isEmpty
+                        ? "Calculator"
+                        : promptMessage,
+                      child: SingleChildScrollView(
+                        reverse: true,
+                        child: Container(
+                          alignment: Alignment.bottomRight,
+                          padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
+                          child: Column( 
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+
+                            
+                          
+                              const SizedBox(height: 8),
+                              // Main / Result Display
+                              Text(
+                                expression.isEmpty
+                                  ? "0"
+                                  : expression, 
+                                style: const TextStyle(
+                                  fontSize: 64,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.end,
+                              ),
+
+
+                              // small formula display
+                              Text(
+                                formula,
+                                style: const TextStyle(
+                                  fontSize: 36,
+                                  color: Colors.grey,
+                                ),
+                                textAlign: TextAlign.end,
+                              ),
+                              
+
+                            ],
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ),
-                
-                // Entire Display
-                Expanded(
-                  child: buildPanel(
-                    title: promptMessage.isEmpty
-                      ? "Calculator"
-                      : promptMessage,
-                    child: SingleChildScrollView(
-                      reverse: true,
-                      child: Container(
-                        alignment: Alignment.bottomRight,
-                        padding: const EdgeInsets.all(16),
-                        child: Column( 
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-
-                            // small formula display
-                            Text(
-                              formula,
-                              style: const TextStyle(
-                                fontSize: 40,
-                                color: Colors.grey,
-                              ),
-                              textAlign: TextAlign.end,
-                            ),
-
-                            const SizedBox(height: 8),
-
-                            // prompt message
-                            Text(
-                              promptMessage,
-                              //correctAnswer,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                color: Colors.orange,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.end,
-                            ),
-
-                            const SizedBox(height: 8),
-                            // Main / Result Display
-                            Text(
-                              expression.isEmpty
-                                ? "0"
-                                : expression, 
-                              style: const TextStyle(
-                                fontSize: 48,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.end,
-                            ),
-                          ],
-                        ),
                       ),
-                    ),
-                  ),)
-              ],
-              ),
-              ),
+                    ),)
+                ],
+                ),
+                ),
 
 
-          Container(
-            alignment: Alignment.topRight,
-            padding: EdgeInsets.symmetric(vertical: 15, horizontal:20),
-            child: Text(
-              "💡 For answer hold '='",
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-                fontStyle: FontStyle.italic,
+            Container(
+              alignment: Alignment.topRight,
+              padding: EdgeInsets.symmetric(vertical: 15, horizontal:20),
+              child: Text(
+                "💡 For answer hold '='",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
             ),
-          ),
-          // buttons
-          Wrap(
-            children: Btn.buttonValues
-                .map(
-                  (value) => SizedBox(
-                    width: value == Btn.lpar || value == Btn.rpar 
-                    ? screenSize.width / 8
-                    : (screenSize.width / 4),
-                    height: screenSize.width / 5,
-                    child: buildButton(value)
-                  ),
-                )
-                .toList(),
-          )
-        ],),
-      )
+            // buttons
+            Wrap(
+              children: Btn.buttonValues
+                  .map(
+                    (value) => SizedBox(
+                      width: value == Btn.lpar || value == Btn.rpar 
+                      ? buttonAreaWidth / 8
+                      : (buttonAreaWidth / 4),
+                      height: screenSize.width / 5,
+                      child: buildButton(value)
+                    ),
+                  )
+                  .toList(),
+            )
+          ],),
+      ))
     );
   }
 
   Widget buildButton(value){
     return Padding(
       padding: const EdgeInsets.all(2.0),
+      /*child: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: const Color.fromARGB(221, 0, 0, 0),
+              blurRadius: 2,
+              offset: Offset(2, 2),
+            ),
+          ],
+        ),*/
       child: Material(
         color: getBtnColor(value),
         clipBehavior: Clip.hardEdge,
-        shape: OutlineInputBorder(
-          borderSide: const BorderSide(
-            color: Colors.white24,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(
+//           color: Color.lerp(getBtnBorderColor(value), Colors.black, 0.25)!,
+            color: getBtnBorderColor(value).withValues(alpha: 0.8),
+            width: 2,
           ),
-          borderRadius: BorderRadius.circular(100),
+          borderRadius: BorderRadius.zero//BorderRadius.circular(100),
         ),
 
         child: InkWell(
@@ -230,7 +235,18 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
+                  color: [
+                    Btn.multiply,
+                    Btn.divide,
+                    Btn.add,
+                    Btn.subtract,
+                    Btn.calculate,
+                    Btn.del,
+                    Btn.clr,
+                  ].contains(value)
+                    ? Colors.white
+                    : Colors.black,
                   fontWeight: FontWeight.bold,
                   fontSize: 36,
                 ),
@@ -239,7 +255,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           )
         ),
       ),
-    );
+    ); 
   }
 
 
@@ -247,6 +263,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     required String title,
     required Widget child,
     double? width,
+    Color titleColor = Colors.amber,
   }) {
     return Container(
       width: width,
@@ -260,11 +277,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       child: Column(
         children: [
 
-          // Header
+          // Thick title bar
           Container(
+            height: 42,
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            // padding: const EdgeInsets.symmetric(vertical: 8),
             decoration: const BoxDecoration(
+              color: Colors.grey,
               border: Border(
                 bottom: BorderSide(
                   color: Colors.grey,
@@ -272,16 +291,22 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 ),
               ),
             ),
+
+            alignment: Alignment.center,
+
             child: Text(
-              title,
-              textAlign: TextAlign.center,
+              title.toUpperCase(),
+              // textAlign: TextAlign.center,
               style: const TextStyle(
+                color: Colors.black,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
+                letterSpacing: 2,
               ),
             ),
           ),
 
-          // Content
+          // Panel contents
           Expanded(
             child: child,
           ),
@@ -502,12 +527,22 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     });
   }
 
+  // UI HELPER FUNCTIONS
+  Color getBtnBorderColor(String value) {
+    final color = getBtnColor(value);
+
+    return Color.fromARGB(
+      255,
+      (color.r * 0.75).round(),
+      (color.g * 0.75).round(),
+      (color.b * 0.75).round(),
+    );
+  }
   // ##########
   Color getBtnColor(value){
     return [Btn.del, Btn.clr].contains(value)
         ?Colors.blueGrey
         :[
-          Btn.per,
           Btn.multiply,
           Btn.add,
           Btn.subtract,
@@ -515,6 +550,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           Btn.calculate,
         ].contains(value)
           ? Colors.orange
-          : const Color.fromARGB(255, 47, 47, 47);
+          : Colors.grey;// const Color.fromARGB(255, 47, 47, 47);
   }
 }
