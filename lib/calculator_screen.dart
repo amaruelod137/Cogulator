@@ -39,9 +39,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     return Scaffold(
       body: SafeArea(
         bottom: false,
-        child: Padding(
-          padding: const EdgeInsetsGeometry.all(2),
-          child: Column(
+        child: Stack(
+          // padding: const EdgeInsetsGeometry.all(2),
+          children: [
+            Column(
             children: [
             const SizedBox(height: 40,),
             
@@ -161,7 +162,18 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   .toList(),
             )
           ],),
-      ))
+          Positioned(
+            top: 4,
+            left: 4,
+            child: IconButton(
+              icon: const Icon(Icons.help_outline),
+              iconSize: 28,
+              onPressed: (){
+
+              },
+            ),
+          )
+      ]))
     );
   }
 
