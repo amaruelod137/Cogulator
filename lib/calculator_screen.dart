@@ -63,7 +63,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                             horizontal: 6,
                           ),
                           child: Text(
-                            incorrectGuesses[index],
+                            incorrectGuesses[incorrectGuesses.length - index - 1],
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               fontSize: 20,
@@ -84,7 +84,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                         reverse: true,
                         child: Container(
                           alignment: Alignment.bottomRight,
-                          padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
+                          padding: const EdgeInsets.fromLTRB(8, 40, 8, 8),
                           child: Column( 
                             crossAxisAlignment: CrossAxisAlignment.end,
                             mainAxisAlignment: MainAxisAlignment.end,
@@ -92,14 +92,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
                             
                           
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 4),
+
                               // Main / Result Display
                               Text(
                                 expression.isEmpty
                                   ? "0"
                                   : expression, 
                                 style: const TextStyle(
-                                  fontSize: 64,
+                                  fontSize: 45,
                                   fontWeight: FontWeight.bold,
                                 ),
                                 textAlign: TextAlign.end,
@@ -110,12 +111,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                               Text(
                                 formula,
                                 style: const TextStyle(
-                                  fontSize: 36,
+                                  fontSize: 20,
                                   color: Colors.grey,
                                 ),
                                 textAlign: TextAlign.end,
                               ),
-                              
+
 
                             ],
                           ),
@@ -127,18 +128,24 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 ),
 
 
-            Container(
-              alignment: Alignment.topRight,
-              padding: EdgeInsets.symmetric(vertical: 15, horizontal:20),
-              child: Text(
-                "💡 For answer hold '='",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                  fontStyle: FontStyle.italic,
+            if (isGuessing)
+
+                Container(
+                  alignment: Alignment.topRight,
+                  padding: EdgeInsets.symmetric(vertical: 15, horizontal:20),
+
+                  child: Text(
+                    "💡 For answer hold '='",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
                 ),
-              ),
-            ),
+            if (isGuessing == false)
+              const SizedBox(height: 53.5),
+
             // buttons
             Wrap(
               children: Btn.buttonValues
@@ -394,29 +401,31 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   // long hold to reveal answer
 
   void revealAnswer(){
-    if (expression.isEmpty) return;
 
-    try {
+    /*try {
       final result = evaluateExpression(expression);
       
       setState(() {
         formula = expression;
-        expression = "$result";
-        promptMessage = "Answer revealed";
-        isGuessing = false;
-        canRefresh = true;
-      });
-    } catch (e) {
+        expression = "$result";*/
+    setState((){
+      expression = correctAnswer;
+      promptMessage = "Answer revealed";
+      isGuessing = false;
+      canRefresh = true;
+    });
+
+    /*} catch (e) {
       setState(() {
         promptMessage = "Invalid expression";
-      });
+      });*/
     }
-  }
+  
 
 
   // start hold function
   void startRevealHold() {
-    if (isGuessing) return;
+    // if (isGuessing) return;
 
     
     isHoldingEquals = true;
@@ -508,6 +517,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       promptMessage = "";
       isGuessing = false;
       correctAnswer = "";
+      incorrectGuesses = [];
     });
   }
 
