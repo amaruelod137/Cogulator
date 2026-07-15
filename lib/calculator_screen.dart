@@ -169,7 +169,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               icon: const Icon(Icons.help_outline),
               iconSize: 28,
               onPressed: (){
-
+                showHelpPopup();
               },
             ),
           )
@@ -289,7 +289,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       margin: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         border: Border.all(
-          color: Colors.grey,
+          color: Color.fromARGB(255, 200, 200, 200),
           width: 2,
         ),
       ),
@@ -302,10 +302,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             width: double.infinity,
             // padding: const EdgeInsets.symmetric(vertical: 8),
             decoration: const BoxDecoration(
-              color: Colors.grey,
+              color: Color.fromARGB(255, 200, 200, 200),
               border: Border(
                 bottom: BorderSide(
-                  color: Colors.grey,
+                  color: Color.fromARGB(255, 200, 200, 200),
                   width: 2,
                 ),
               ),
@@ -560,6 +560,96 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       (color.b * 0.75).round(),
     );
   }
+
+  // modal overlay for tutorial popup window
+  void showHelpPopup(){
+    showDialog(
+      context: context, 
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          insetPadding: const EdgeInsets.all(4),
+          child: Container(
+            width: double.infinity,
+            height: MediaQuery.of(context).size.height * 0.85,
+
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 200, 200, 200),
+              border: Border.all(
+                color: const Color.fromARGB(255, 119, 119, 119),
+                width: 3,
+              ),
+            ),
+
+            child: Column(
+              children: [
+                
+                // Title
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(8),
+                  color: const Color.fromARGB(255, 200, 200, 200),
+                  child: const Text(
+                    "Instructions",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black
+                    ),
+                  ),
+                ),
+
+                // Tutorial content
+                const Expanded(
+                  child: Center(
+                    child: Text(
+                      "Page 1",
+                      style: TextStyle(
+                        fontSize:24,
+                        color: Colors.black
+                        ),
+                    ),
+                  ),
+                ),
+
+                // Bottom buttons
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+
+                      // previous page arrow
+                      IconButton(
+                        onPressed: () {},
+                        icon: const Icon(
+                          Icons.arrow_back_ios,
+                          color: Colors.black87,
+                          size: 34
+                        ),
+                      ),
+
+                      // next page arrow
+                      IconButton(
+                        onPressed: () {},
+                        icon: const Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.black87,
+                          size: 34
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            )
+          ),
+        );
+      }
+    );
+  }
   // ##########
   Color getBtnColor(value){
     return [Btn.del, Btn.clr].contains(value)
@@ -572,6 +662,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           Btn.calculate,
         ].contains(value)
           ? Colors.orange
-          : Colors.grey;// const Color.fromARGB(255, 47, 47, 47);
+          : Color.fromARGB(255, 200, 200, 200);// const Color.fromARGB(255, 47, 47, 47);
   }
 }
