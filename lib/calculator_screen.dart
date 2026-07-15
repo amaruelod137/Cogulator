@@ -30,6 +30,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   // display functions
   List<String> incorrectGuesses = [];
+  int helpPage = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -566,87 +567,101 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     showDialog(
       context: context, 
       builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          insetPadding: const EdgeInsets.all(4),
-          child: Container(
-            width: double.infinity,
-            height: MediaQuery.of(context).size.height * 0.85,
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            insetPadding: const EdgeInsets.all(4),
+            child: Container(
+              width: double.infinity,
+              height: MediaQuery.of(context).size.height * 0.85,
 
-            decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 200, 200, 200),
-              border: Border.all(
-                color: const Color.fromARGB(255, 119, 119, 119),
-                width: 3,
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 200, 200, 200),
+                border: Border.all(
+                  color: const Color.fromARGB(255, 119, 119, 119),
+                  width: 3,
+                ),
               ),
-            ),
 
-            child: Column(
-              children: [
-                
-                // Title
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(8),
-                  color: const Color.fromARGB(255, 200, 200, 200),
-                  child: const Text(
-                    "Instructions",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black
-                    ),
-                  ),
-                ),
-
-                // Tutorial content
-                const Expanded(
-                  child: Center(
-                    child: Text(
-                      "Page 1",
+              child: Column(
+                children: [
+                  
+                  // Title
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    color: const Color.fromARGB(255, 200, 200, 200),
+                    child: const Text(
+                      "Instructions",
+                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize:24,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
                         color: Colors.black
-                        ),
+                      ),
                     ),
                   ),
-                ),
 
-                // Bottom buttons
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-
-                      // previous page arrow
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(
-                          Icons.arrow_back_ios,
-                          color: Colors.black87,
-                          size: 34
-                        ),
+                  // Tutorial content
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        "Step ${helpPage + 1}",
+                        style: TextStyle(
+                          fontSize:24,
+                          color: Colors.black
+                          ),
                       ),
-
-                      // next page arrow
-                      IconButton(
-                        onPressed: () {},
-                        icon: const Icon(
-                          Icons.arrow_forward_ios,
-                          color: Colors.black87,
-                          size: 34
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
-            )
-          ),
-        );
+
+                  // Bottom buttons
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+
+                        // previous page arrow
+                        IconButton(
+                          onPressed: () {
+                            if (helpPage > 0) {
+                              setDialogState(() {
+                                helpPage--;
+                              });
+                            }
+                          },
+                          icon: const Icon(
+                            Icons.arrow_back_ios,
+                            color: Colors.black87,
+                            size: 34
+                          ),
+                        ),
+
+                        // next page arrow
+                        IconButton(
+                          onPressed: () {
+                            setDialogState((){
+                              helpPage++;
+                            });
+                          },
+                          icon: const Icon(
+                            Icons.arrow_forward_ios,
+                            color: Colors.black87,
+                            size: 34
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+            ),
+          );
+        }
+        );  
       }
     );
   }
