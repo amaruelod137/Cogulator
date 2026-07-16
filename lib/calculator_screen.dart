@@ -30,7 +30,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   // display functions
   List<String> incorrectGuesses = [];
+  
+  // tutorial page variables
+  List<String> tutorialSteps = [];
   int helpPage = 0;
+
 
   @override
   Widget build(BuildContext context) {
@@ -102,12 +106,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                                   ? "0"
                                   : expression, 
                                 style: const TextStyle(
-                                  fontSize: 45,
+                                  fontSize: 35,
                                   fontWeight: FontWeight.bold,
                                 ),
                                 textAlign: TextAlign.end,
                               ),
 
+                              const SizedBox(height: 12),
 
                               // small formula display
                               Text(
@@ -170,6 +175,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               icon: const Icon(Icons.help_outline),
               iconSize: 28,
               onPressed: (){
+                generateTutorial(formula);
                 showHelpPopup();
               },
             ),
@@ -608,8 +614,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   Expanded(
                     child: Center(
                       child: Text(
-                        "Step ${helpPage + 1}",
-                        style: TextStyle(
+                        tutorialSteps.isEmpty
+                          ? "No tutorial available yet !\nEnter a formula to generate one ;)"
+                          : tutorialSteps[helpPage],
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
                           fontSize:24,
                           color: Colors.black
                           ),
@@ -643,9 +652,11 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                         // next page arrow
                         IconButton(
                           onPressed: () {
-                            setDialogState((){
-                              helpPage++;
-                            });
+                            if (helpPage < tutorialSteps.length- 1) {
+                              setDialogState((){
+                                helpPage++;
+                              });
+                            }
                           },
                           icon: const Icon(
                             Icons.arrow_forward_ios,
@@ -679,4 +690,27 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           ? Colors.orange
           : Color.fromARGB(255, 200, 200, 200);// const Color.fromARGB(255, 47, 47, 47);
   }
+
+  // Tutorial Engine
+  void generateTutorial(String expr) {
+    helpPage = 0;
+    tutorialSteps = [
+      "Expression:\n$expr"
+    ];
+  }
+
+
+  // Test Functions 
+  /*
+  void loadTestTutorial() {
+    helpPage = 0;
+    tutorialSteps = [
+      "Expression:\n(6+3) × (9-7)",
+      "Step 1\n\nEvaluate the first brackets:\n6 + 3 = 9",
+      "Step 2\n\nThe expression becomes:\n9 × (9-7)",
+      "Step 3\n\nEvaluate the second brackets:\n9 - 7 = 2",
+      "Step 4\n\nThe expression becomes:\n9 × 2",
+      "Step 5\n\nMultiply:\n9 × 2 = 18",
+    ];
+  }*/
 }
