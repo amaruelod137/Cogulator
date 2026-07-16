@@ -4,6 +4,16 @@ import 'package:math_expressions/math_expressions.dart';
 import 'dart:async';
 
 
+class TutorialNode {
+  String value;
+  TutorialNode? left;
+  TutorialNode? right;
+
+  TutorialNode(this.value, {this.left, this.right});
+
+  bool get isLeaf => left == null && right == null;
+}
+
 class CalculatorScreen extends StatefulWidget {
   const CalculatorScreen({super.key});
 
@@ -413,8 +423,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     ContextModel cm = ContextModel();
 
     return exp.evaluate(EvaluationType.REAL, cm);
-
-
   }
 
   // long hold to reveal answer
@@ -694,9 +702,136 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   // Tutorial Engine
   void generateTutorial(String expr) {
     helpPage = 0;
-    tutorialSteps = [
-      "Expression:\n$expr"
-    ];
+    tutorialSteps.clear();
+
+    tutorialSteps.add("Expression:\n$expr");
+
+    final twoBracketPattern =
+    RegExp(r'^\(([^()]+)\)([×÷])\(([^()]+)\)$');
+
+    
+    if (twoBracketPattern.hasMatch(expr)) {
+      final match = twoBracketPattern.firstMatch(expr)!;
+
+      final left = match.group(1)!;
+      final op = match.group(2)!;
+      final right = match.group(3)!;
+
+      final leftResult = evaluateExpression(left);
+      final rightResult = evaluateExpression(right);
+
+      final simplified = "$leftResult$op$rightResult";
+      final finalResult = evaluateExpression(simplified);
+
+      tutorialSteps.add(
+        "Evaluate the first brackets:\n\n$left = $leftResult",
+      );
+
+      tutorialSteps.add(
+        "The expression becomes:\n\n$leftResult$op($right)",
+      );
+
+      tutorialSteps.add(
+        "Evaluate the second brackets:\n\n$right = $rightResult",
+      );
+
+      tutorialSteps.add(
+        "The expression becomes:\n\n$simplified",
+      );
+
+      tutorialSteps.add(
+        "Evaluate:\n\n$simplified = $finalResult",
+      );
+
+      tutorialSteps.add(
+        "Answer:\n$finalResult",
+      );
+
+      return;
+    }
+    
+
+    final bracketThenNumberPattern =
+      RegExp(r'^\(([^()]+)\)([×÷])(\d+(\.\d+)?)$');
+
+    if (bracketThenNumberPattern.hasMatch(expr)) {
+      final match = bracketThenNumberPattern.firstMatch(expr)!;
+
+      final inside = match.group(1)!;
+      final operator = match.group(2)!;
+      final number = match.group(3)!;
+
+      final bracketResult = evaluateExpression(inside);
+
+      final simplifiedExpr = "$bracketResult$operator$number";
+
+      final finalResult = evaluateExpression(simplifiedExpr);
+
+      tutorialSteps.add(
+        "Evaluate the brackets:\n\n$inside = $bracketResult",
+      );
+
+      tutorialSteps.add(
+        "Replace the brackets:\n\n($inside)$operator$number\n↓\n$simplifiedExpr",
+      );
+
+      tutorialSteps.add(
+        "Evaluate:\n\n$simplifiedExpr = $finalResult",
+      );
+
+      tutorialSteps.add(
+        "Answer:\n$finalResult",
+      );
+
+      return;
+    }
+
+    // One pair of brackets, e.g. (6+3)
+    final bracketPattern = RegExp(r'^\(([^()]+)\)$');
+    
+    if (bracketPattern.hasMatch(expr)) {
+      final inside = bracketPattern.firstMatch(expr)!.group(1)!;
+
+      final insideResult = evaluateExpression(inside);
+
+      final resultText =
+        insideResult == insideResult.toInt()
+            ? insideResult.toInt().toString()
+            : insideResult.toString();
+
+      tutorialSteps.add(
+        "Evaluate what's inside the brackets:\n\n$inside = $insideResult",
+      );
+
+      tutorialSteps.add(
+        "Replace the brackets:\n\n($inside) → $insideResult",
+      );
+
+      tutorialSteps.add(
+        "Answer:\n$insideResult",
+      );
+
+      return;
+    }
+    // Only support simple expressions for now
+    final simplePattern = RegExp(r'^\d+(\.\d+)?[+\-×÷]\d+(\.\d+)?$');
+
+    if (!simplePattern.hasMatch(expr)) {
+      tutorialSteps.add(
+        "Tutorials for this type of expression\nare not implemented yet."
+      );
+      return;
+    }
+
+    final result = evaluateExpression(expr);
+
+    tutorialSteps.add(
+      "Evaluate the expression:\n\n$expr = $result",
+    );
+
+    tutorialSteps.add(
+      "Answer:\n$result",
+    );
   }
 
 

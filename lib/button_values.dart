@@ -2,7 +2,7 @@ class Btn {
   static const String del = "Del";
   static const String clr = "AC";
   static const String per = "%";
-  static const String multiply = "x";
+  static const String multiply = "×";
   static const String divide = "÷";
   static const String add = "+";
   static const String subtract = "-";
