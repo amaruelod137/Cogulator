@@ -34,13 +34,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   // variables for dual purpose evaluate button
   Timer? revealTimer;
   double holdProgress = 0.0;
-  bool isHoldingEquals = false;
   bool longPressTriggered = false;
 
   // display functions
   List<String> incorrectGuesses = [];
 
   // tutorial page variables
+  bool showTutorialHint = false;
   List<String> tutorialSteps = [];
   int helpPage = 0;
 
@@ -170,13 +170,41 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             Positioned(
               top: 4,
               left: 4,
-              child: IconButton(
-                icon: const Icon(Icons.help_outline),
-                iconSize: 28,
-                onPressed: () {
-                  generateTutorial(formula);
-                  showHelpPopup();
-                },
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.help_outline),
+                    iconSize: 28,
+                    onPressed: () {
+                      setState(() {
+                        showTutorialHint = false;
+                      });
+
+                      generateTutorial(formula);
+                      showHelpPopup();
+                    },
+                  ),
+
+                  if (showTutorialHint)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Color.fromARGB(255, 49, 50, 114),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                      child: const Text(
+                        "<< Step-by-step guide",
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 200, 200, 200),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ],
@@ -188,16 +216,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   Widget buildButton(value) {
     return Padding(
       padding: const EdgeInsets.all(2.0),
-      /*child: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: const Color.fromARGB(221, 0, 0, 0),
-              blurRadius: 2,
-              offset: Offset(2, 2),
-            ),
-          ],
-        ),*/
+
       child: Material(
         color: getBtnColor(value),
         clipBehavior: Clip.hardEdge,
@@ -238,14 +257,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             }
             onBtnTap(value);
           },
-          /*
-          child: Center(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold, 
-                fontSize: 36),
-*/
+
           child: Stack(
             alignment: Alignment.center,
             children: [
@@ -289,7 +301,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     required String title,
     required Widget child,
     double? width,
-    Color titleColor = Colors.amber,
   }) {
     return Container(
       width: width,
@@ -383,6 +394,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         correctAnswer = "$result";
         promptMessage = "Please try to guess first:";
         isGuessing = true;
+        showTutorialHint = true;
       });
     } catch (e) {
       setState(() {
@@ -407,30 +419,18 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   // long hold to reveal answer
 
   void revealAnswer() {
-    /*try {
-      final result = evaluateExpression(expression);
-      
-      setState(() {
-        formula = expression;
-        expression = "$result";*/
     setState(() {
       expression = correctAnswer;
       promptMessage = "Answer revealed";
       isGuessing = false;
       canRefresh = true;
     });
-
-    /*} catch (e) {
-      setState(() {
-        promptMessage = "Invalid expression";
-      });*/
   }
 
   // start hold function
   void startRevealHold() {
     // if (isGuessing) return;
 
-    isHoldingEquals = true;
     holdProgress = 0;
 
     //milliseconds
@@ -449,7 +449,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         timer.cancel();
 
         holdProgress = 0;
-        isHoldingEquals = false;
 
         longPressTriggered = true;
 
@@ -465,7 +464,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     if (holdProgress > 0) {
       setState(() {
         holdProgress = 0;
-        isHoldingEquals = false;
       });
     }
   }
@@ -494,19 +492,19 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   // convert to percentage function
   void convertToPercentage() {
-    // TODO: rewrite for expression-based calculator
     if (expression.isEmpty) return;
-    final number = double.tryParse(expression);
 
-    if (number == null) {
+    try {
+      final result = evaluateExpression(expression);
+
+      setState(() {
+        expression = (result / 100).toString();
+      });
+    } catch (_) {
       setState(() {
         promptMessage = "Invalid percentage";
       });
-      return;
     }
-    setState(() {
-      expression = (number / 100).toString();
-    });
   }
 
   // clear function
@@ -657,7 +655,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   // ##########
   Color getBtnColor(value) {
     return [Btn.del, Btn.clr].contains(value)
-        ? Colors.blueGrey
+        ? Color.fromARGB(255, 49, 50, 114)
         : [
             Btn.multiply,
             Btn.add,
@@ -834,15 +832,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     return "$left${node.value}$right";
   }
 
-  // 3. copy the tree
-  TutorialNode cloneTree(TutorialNode node) {
-    return TutorialNode(
-      node.value,
-      left: node.left == null ? null : cloneTree(node.left!),
-      right: node.right == null ? null : cloneTree(node.right!),
-    );
-  }
-
   // 4. swap tree nodes
   void replaceNode(
     TutorialNode current,
@@ -903,18 +892,16 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
     TutorialNode tree = buildTree(tokenize(expr));
 
-    tutorialSteps.add("Expression:\n$expr");
+    tutorialSteps.add("Your Expression:\n$expr");
 
     while (!tree.isLeaf) {
       TutorialNode? node = findFirstSolvable(tree);
 
       if (node == null) break;
 
-      String before = treeToExpression(tree);
-
       double result = evaluateTree(node);
 
-      tutorialSteps.add("Evaluate:\n\n${treeToExpression(node)} = $result");
+      tutorialSteps.add("Evaluate the following:\n\n${treeToExpression(node)} = $result");
 
       TutorialNode replacement = TutorialNode(result.toString());
 
@@ -924,153 +911,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         replaceNode(tree, node, replacement);
       }
 
-      tutorialSteps.add("Expression becomes:\n\n${treeToExpression(tree)}");
+      tutorialSteps.add("The Expression becomes:\n\n${treeToExpression(tree)}");
     }
 
     tutorialSteps.add("Answer:\n${tree.value}");
-    // TEST //
-
-    /* tutorialSteps.add("Expression:\n$expr");
-
-    final twoBracketPattern =
-    RegExp(r'^\(([^()]+)\)([×÷])\(([^()]+)\)$');
-
-    
-    if (twoBracketPattern.hasMatch(expr)) {
-      final match = twoBracketPattern.firstMatch(expr)!;
-
-      final left = match.group(1)!;
-      final op = match.group(2)!;
-      final right = match.group(3)!;
-
-      final leftResult = evaluateExpression(left);
-      final rightResult = evaluateExpression(right);
-
-      final simplified = "$leftResult$op$rightResult";
-      final finalResult = evaluateExpression(simplified);
-
-      tutorialSteps.add(
-        "Evaluate the first brackets:\n\n$left = $leftResult",
-      );
-
-      tutorialSteps.add(
-        "The expression becomes:\n\n$leftResult$op($right)",
-      );
-
-      tutorialSteps.add(
-        "Evaluate the second brackets:\n\n$right = $rightResult",
-      );
-
-      tutorialSteps.add(
-        "The expression becomes:\n\n$simplified",
-      );
-
-      tutorialSteps.add(
-        "Evaluate:\n\n$simplified = $finalResult",
-      );
-
-      tutorialSteps.add(
-        "Answer:\n$finalResult",
-      );
-
-      return;
-    }
-    
-
-    final bracketThenNumberPattern =
-      RegExp(r'^\(([^()]+)\)([×÷])(\d+(\.\d+)?)$');
-
-    if (bracketThenNumberPattern.hasMatch(expr)) {
-      final match = bracketThenNumberPattern.firstMatch(expr)!;
-
-      final inside = match.group(1)!;
-      final operator = match.group(2)!;
-      final number = match.group(3)!;
-
-      final bracketResult = evaluateExpression(inside);
-
-      final simplifiedExpr = "$bracketResult$operator$number";
-
-      final finalResult = evaluateExpression(simplifiedExpr);
-
-      tutorialSteps.add(
-        "Evaluate the brackets:\n\n$inside = $bracketResult",
-      );
-
-      tutorialSteps.add(
-        "Replace the brackets:\n\n($inside)$operator$number\n↓\n$simplifiedExpr",
-      );
-
-      tutorialSteps.add(
-        "Evaluate:\n\n$simplifiedExpr = $finalResult",
-      );
-
-      tutorialSteps.add(
-        "Answer:\n$finalResult",
-      );
-
-      return;
-    }
-
-    // One pair of brackets, e.g. (6+3)
-    final bracketPattern = RegExp(r'^\(([^()]+)\)$');
-    
-    if (bracketPattern.hasMatch(expr)) {
-      final inside = bracketPattern.firstMatch(expr)!.group(1)!;
-
-      final insideResult = evaluateExpression(inside);
-
-      final resultText =
-        insideResult == insideResult.toInt()
-            ? insideResult.toInt().toString()
-            : insideResult.toString();
-
-      tutorialSteps.add(
-        "Evaluate what's inside the brackets:\n\n$inside = $insideResult",
-      );
-
-      tutorialSteps.add(
-        "Replace the brackets:\n\n($inside) → $insideResult",
-      );
-
-      tutorialSteps.add(
-        "Answer:\n$insideResult",
-      );
-
-      return;
-    }
-    // Only support simple expressions for now
-    final simplePattern = RegExp(r'^\d+(\.\d+)?[+\-×÷]\d+(\.\d+)?$');
-
-    if (!simplePattern.hasMatch(expr)) {
-      tutorialSteps.add(
-        "Tutorials for this type of expression\nare not implemented yet."
-      );
-      return;
-    }
-
-    final result = evaluateExpression(expr);
-
-    tutorialSteps.add(
-      "Evaluate the expression:\n\n$expr = $result",
-    );
-
-    tutorialSteps.add(
-      "Answer:\n$result",
-    );*/
   }
-
-  // Test Functions
-  /*
-  void loadTestTutorial() {
-    helpPage = 0;
-    tutorialSteps = [
-      "Expression:\n(6+3) × (9-7)",
-      "Step 1\n\nEvaluate the first brackets:\n6 + 3 = 9",
-      "Step 2\n\nThe expression becomes:\n9 × (9-7)",
-      "Step 3\n\nEvaluate the second brackets:\n9 - 7 = 2",
-      "Step 4\n\nThe expression becomes:\n9 × 2",
-      "Step 5\n\nMultiply:\n9 × 2 = 18",
-    ];
-  }*/
 }
