@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:math_expressions/math_expressions.dart';
 import 'dart:async';
 
-
 class TutorialNode {
   String value;
   TutorialNode? left;
@@ -33,22 +32,21 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   bool isGuessing = false;
 
   // variables for dual purpose evaluate button
-  Timer? revealTimer; 
+  Timer? revealTimer;
   double holdProgress = 0.0;
   bool isHoldingEquals = false;
   bool longPressTriggered = false;
 
   // display functions
   List<String> incorrectGuesses = [];
-  
+
   // tutorial page variables
   List<String> tutorialSteps = [];
   int helpPage = 0;
 
-
   @override
   Widget build(BuildContext context) {
-    final screenSize=MediaQuery.of(context).size;
+    final screenSize = MediaQuery.of(context).size;
     const double horizontalPadding = 12;
     final buttonAreaWidth = screenSize.width - (horizontalPadding * 2);
     return Scaffold(
@@ -58,143 +56,136 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           // padding: const EdgeInsetsGeometry.all(2),
           children: [
             Column(
-            children: [
-            const SizedBox(height: 40,),
-            
-            Expanded(
-              child: Row(
-                children: [
-                  
-                  // Left history panel
-                  buildPanel(
-                    title: "Guesses",
-                    width: 90,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      itemCount: incorrectGuesses.length,
-                      itemBuilder: (context, index) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 2,
-                            horizontal: 6,
-                          ),
-                          child: Text(
-                            incorrectGuesses[incorrectGuesses.length - index - 1],
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 20,
+              children: [
+                const SizedBox(height: 40),
+
+                Expanded(
+                  child: Row(
+                    children: [
+                      // Left history panel
+                      buildPanel(
+                        title: "Guesses",
+                        width: 90,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          itemCount: incorrectGuesses.length,
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 2,
+                                horizontal: 6,
+                              ),
+                              child: Text(
+                                incorrectGuesses[incorrectGuesses.length -
+                                    index -
+                                    1],
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                      // Entire Display
+                      Expanded(
+                        child: buildPanel(
+                          title: promptMessage.isEmpty
+                              ? "Calculator"
+                              : promptMessage,
+                          child: SingleChildScrollView(
+                            reverse: true,
+                            child: Container(
+                              alignment: Alignment.bottomRight,
+                              padding: const EdgeInsets.fromLTRB(8, 40, 8, 8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  const SizedBox(height: 4),
+
+                                  // Main / Result Display
+                                  Text(
+                                    expression.isEmpty ? "0" : expression,
+                                    style: const TextStyle(
+                                      fontSize: 35,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.end,
+                                  ),
+
+                                  const SizedBox(height: 12),
+
+                                  // small formula display
+                                  Text(
+                                    formula,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      color: Colors.grey,
+                                    ),
+                                    textAlign: TextAlign.end,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  
-                  // Entire Display
-                  Expanded(
-                    child: buildPanel(
-                      title: promptMessage.isEmpty
-                        ? "Calculator"
-                        : promptMessage,
-                      child: SingleChildScrollView(
-                        reverse: true,
-                        child: Container(
-                          alignment: Alignment.bottomRight,
-                          padding: const EdgeInsets.fromLTRB(8, 40, 8, 8),
-                          child: Column( 
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-
-                            
-                          
-                              const SizedBox(height: 4),
-
-                              // Main / Result Display
-                              Text(
-                                expression.isEmpty
-                                  ? "0"
-                                  : expression, 
-                                style: const TextStyle(
-                                  fontSize: 35,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.end,
-                              ),
-
-                              const SizedBox(height: 12),
-
-                              // small formula display
-                              Text(
-                                formula,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  color: Colors.grey,
-                                ),
-                                textAlign: TextAlign.end,
-                              ),
-
-
-                            ],
                           ),
                         ),
                       ),
-                    ),)
-                ],
-                ),
-                ),
-
-
-            if (isGuessing)
-
-                Container(
-                  alignment: Alignment.topRight,
-                  padding: EdgeInsets.symmetric(vertical: 15, horizontal:20),
-
-                  child: Text(
-                    "💡 For answer hold '='",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                      fontStyle: FontStyle.italic,
-                    ),
+                    ],
                   ),
                 ),
-            if (isGuessing == false)
-              const SizedBox(height: 53.5),
 
-            // buttons
-            Wrap(
-              children: Btn.buttonValues
-                  .map(
-                    (value) => SizedBox(
-                      width: value == Btn.lpar || value == Btn.rpar 
-                      ? buttonAreaWidth / 8
-                      : (buttonAreaWidth / 4),
-                      height: screenSize.width / 5,
-                      child: buildButton(value)
+                if (isGuessing)
+                  Container(
+                    alignment: Alignment.topRight,
+                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+
+                    child: Text(
+                      "💡 For answer hold '='",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
-                  )
-                  .toList(),
-            )
-          ],),
-          Positioned(
-            top: 4,
-            left: 4,
-            child: IconButton(
-              icon: const Icon(Icons.help_outline),
-              iconSize: 28,
-              onPressed: (){
-                generateTutorial(formula);
-                showHelpPopup();
-              },
+                  ),
+                if (isGuessing == false) const SizedBox(height: 53.5),
+
+                // buttons
+                Wrap(
+                  children: Btn.buttonValues
+                      .map(
+                        (value) => SizedBox(
+                          width: value == Btn.lpar || value == Btn.rpar
+                              ? buttonAreaWidth / 8
+                              : (buttonAreaWidth / 4),
+                          height: screenSize.width / 5,
+                          child: buildButton(value),
+                        ),
+                      )
+                      .toList(),
+                ),
+              ],
             ),
-          )
-      ]))
+            Positioned(
+              top: 4,
+              left: 4,
+              child: IconButton(
+                icon: const Icon(Icons.help_outline),
+                iconSize: 28,
+                onPressed: () {
+                  generateTutorial(formula);
+                  showHelpPopup();
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget buildButton(value){
+  Widget buildButton(value) {
     return Padding(
       padding: const EdgeInsets.all(2.0),
       /*child: Container(
@@ -212,15 +203,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         clipBehavior: Clip.hardEdge,
         shape: RoundedRectangleBorder(
           side: BorderSide(
-//           color: Color.lerp(getBtnBorderColor(value), Colors.black, 0.25)!,
+            //           color: Color.lerp(getBtnBorderColor(value), Colors.black, 0.25)!,
             color: getBtnBorderColor(value).withValues(alpha: 0.8),
             width: 2,
           ),
-          borderRadius: BorderRadius.zero//BorderRadius.circular(100),
+          borderRadius: BorderRadius.zero, //BorderRadius.circular(100),
         ),
 
         child: InkWell(
-          // tap/hold 
+          // tap/hold
           onTapDown: (_) {
             if (value == Btn.calculate) {
               startRevealHold();
@@ -245,9 +236,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               longPressTriggered = false;
               return;
             }
-            onBtnTap(value);         
+            onBtnTap(value);
           },
-/*
+          /*
           child: Center(
             child: Text(
               value,
@@ -258,7 +249,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           child: Stack(
             alignment: Alignment.center,
             children: [
-
               if (value == Btn.calculate && holdProgress > 0)
                 SizedBox(
                   width: 70,
@@ -272,28 +262,28 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
               Text(
                 value,
                 style: TextStyle(
-                  color: [
-                    Btn.multiply,
-                    Btn.divide,
-                    Btn.add,
-                    Btn.subtract,
-                    Btn.calculate,
-                    Btn.del,
-                    Btn.clr,
-                  ].contains(value)
-                    ? Colors.white
-                    : Colors.black,
+                  color:
+                      [
+                        Btn.multiply,
+                        Btn.divide,
+                        Btn.add,
+                        Btn.subtract,
+                        Btn.calculate,
+                        Btn.del,
+                        Btn.clr,
+                      ].contains(value)
+                      ? Colors.white
+                      : Colors.black,
                   fontWeight: FontWeight.bold,
                   fontSize: 36,
                 ),
               ),
             ],
-          )
+          ),
         ),
       ),
-    ); 
+    );
   }
-
 
   Widget buildPanel({
     required String title,
@@ -305,14 +295,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       width: width,
       margin: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        border: Border.all(
-          color: Color.fromARGB(255, 200, 200, 200),
-          width: 2,
-        ),
+        border: Border.all(color: Color.fromARGB(255, 200, 200, 200), width: 2),
       ),
       child: Column(
         children: [
-
           // Thick title bar
           Container(
             height: 42,
@@ -343,61 +329,54 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           ),
 
           // Panel contents
-          Expanded(
-            child: child,
-          ),
+          Expanded(child: child),
         ],
       ),
     );
   }
 
-
-
   // Button functions
-  void onBtnTap(String value){
-    if(value == Btn.del) {
+  void onBtnTap(String value) {
+    if (value == Btn.del) {
       delete();
       return;
     }
-    
-    if(value == Btn.clr) {
+
+    if (value == Btn.clr) {
       clearAll();
       return;
     }
 
-    if(value == Btn.per){
+    if (value == Btn.per) {
       convertToPercentage();
       return;
     }
 
-    if(value == Btn.calculate){
-      
-      if(isGuessing){
+    if (value == Btn.calculate) {
+      if (isGuessing) {
         checkGuess();
-      }
-      else{
+      } else {
         calculate();
       }
       return;
     }
 
-    if(canRefresh == true){
+    if (canRefresh == true) {
       clearAll();
       appendValue(value);
       canRefresh = false;
-    }
-    else{
+    } else {
       appendValue(value);
     }
   }
 
   // calculation function
-  void calculate(){
+  void calculate() {
     if (expression.isEmpty) return;
 
-    try{
+    try {
       final result = evaluateExpression(expression);
-      
+
       setState(() {
         formula = expression;
         expression = "";
@@ -427,15 +406,14 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   // long hold to reveal answer
 
-  void revealAnswer(){
-
+  void revealAnswer() {
     /*try {
       final result = evaluateExpression(expression);
       
       setState(() {
         formula = expression;
         expression = "$result";*/
-    setState((){
+    setState(() {
       expression = correctAnswer;
       promptMessage = "Answer revealed";
       isGuessing = false;
@@ -446,42 +424,38 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       setState(() {
         promptMessage = "Invalid expression";
       });*/
-    }
-  
-
+  }
 
   // start hold function
   void startRevealHold() {
     // if (isGuessing) return;
 
-    
     isHoldingEquals = true;
     holdProgress = 0;
-    
-     //milliseconds
+
+    //milliseconds
     const totalDuration = 2500;
     const tickRate = 50;
 
     revealTimer?.cancel();
 
-    revealTimer = Timer.periodic(
-      const Duration(milliseconds: tickRate),
-      (timer) {
-        setState(() {
-          holdProgress += tickRate / totalDuration;
-        });
-        if (holdProgress >= 1) {
-          timer.cancel();
+    revealTimer = Timer.periodic(const Duration(milliseconds: tickRate), (
+      timer,
+    ) {
+      setState(() {
+        holdProgress += tickRate / totalDuration;
+      });
+      if (holdProgress >= 1) {
+        timer.cancel();
 
-          holdProgress = 0;
-          isHoldingEquals = false;
+        holdProgress = 0;
+        isHoldingEquals = false;
 
-          longPressTriggered = true;
+        longPressTriggered = true;
 
-          revealAnswer();
-        }
-      },
-    );
+        revealAnswer();
+      }
+    });
   }
 
   // cancel hold function
@@ -495,7 +469,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       });
     }
   }
-  // function to check the user's guess 
+
+  // function to check the user's guess
   void checkGuess() {
     if (expression.isEmpty) return;
 
@@ -518,9 +493,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   }
 
   // convert to percentage function
-  void convertToPercentage(){
+  void convertToPercentage() {
     // TODO: rewrite for expression-based calculator
-    if(expression.isEmpty) return;
+    if (expression.isEmpty) return;
     final number = double.tryParse(expression);
 
     if (number == null) {
@@ -534,12 +509,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     });
   }
 
-
   // clear function
-  void clearAll(){
+  void clearAll() {
     setState(() {
-
-      formula="";
+      formula = "";
       expression = "";
       promptMessage = "";
       isGuessing = false;
@@ -549,19 +522,17 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   }
 
   // delete function
-  void delete(){
-    if(expression.isEmpty) return;
+  void delete() {
+    if (expression.isEmpty) return;
 
     setState(() {
-      expression =
-        expression.substring(0, expression.length - 1);
+      expression = expression.substring(0, expression.length - 1);
     });
   }
 
-  void appendValue(String value){
+  void appendValue(String value) {
     expression += value;
-    setState(() {
-    });
+    setState(() {});
   }
 
   // UI HELPER FUNCTIONS
@@ -577,126 +548,350 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   }
 
   // modal overlay for tutorial popup window
-  void showHelpPopup(){
+  void showHelpPopup() {
     showDialog(
-      context: context, 
+      context: context,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-          return Dialog(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            insetPadding: const EdgeInsets.all(4),
-            child: Container(
-              width: double.infinity,
-              height: MediaQuery.of(context).size.height * 0.85,
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              insetPadding: const EdgeInsets.all(4),
+              child: Container(
+                width: double.infinity,
+                height: MediaQuery.of(context).size.height * 0.85,
 
-              decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 200, 200, 200),
-                border: Border.all(
-                  color: const Color.fromARGB(255, 119, 119, 119),
-                  width: 3,
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 200, 200, 200),
+                  border: Border.all(
+                    color: const Color.fromARGB(255, 119, 119, 119),
+                    width: 3,
+                  ),
+                ),
+
+                child: Column(
+                  children: [
+                    // Title
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(8),
+                      color: const Color.fromARGB(255, 200, 200, 200),
+                      child: const Text(
+                        "Instructions",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ),
+
+                    // Tutorial content
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          tutorialSteps.isEmpty
+                              ? "No tutorial available yet !\nEnter a formula to generate one ;)"
+                              : tutorialSteps[helpPage],
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Bottom buttons
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // previous page arrow
+                          IconButton(
+                            onPressed: () {
+                              if (helpPage > 0) {
+                                setDialogState(() {
+                                  helpPage--;
+                                });
+                              }
+                            },
+                            icon: const Icon(
+                              Icons.arrow_back_ios,
+                              color: Colors.black87,
+                              size: 34,
+                            ),
+                          ),
+
+                          // next page arrow
+                          IconButton(
+                            onPressed: () {
+                              if (helpPage < tutorialSteps.length - 1) {
+                                setDialogState(() {
+                                  helpPage++;
+                                });
+                              }
+                            },
+                            icon: const Icon(
+                              Icons.arrow_forward_ios,
+                              color: Colors.black87,
+                              size: 34,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-
-              child: Column(
-                children: [
-                  
-                  // Title
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(8),
-                    color: const Color.fromARGB(255, 200, 200, 200),
-                    child: const Text(
-                      "Instructions",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black
-                      ),
-                    ),
-                  ),
-
-                  // Tutorial content
-                  Expanded(
-                    child: Center(
-                      child: Text(
-                        tutorialSteps.isEmpty
-                          ? "No tutorial available yet !\nEnter a formula to generate one ;)"
-                          : tutorialSteps[helpPage],
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize:24,
-                          color: Colors.black
-                          ),
-                      ),
-                    ),
-                  ),
-
-                  // Bottom buttons
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-
-                        // previous page arrow
-                        IconButton(
-                          onPressed: () {
-                            if (helpPage > 0) {
-                              setDialogState(() {
-                                helpPage--;
-                              });
-                            }
-                          },
-                          icon: const Icon(
-                            Icons.arrow_back_ios,
-                            color: Colors.black87,
-                            size: 34
-                          ),
-                        ),
-
-                        // next page arrow
-                        IconButton(
-                          onPressed: () {
-                            if (helpPage < tutorialSteps.length- 1) {
-                              setDialogState((){
-                                helpPage++;
-                              });
-                            }
-                          },
-                          icon: const Icon(
-                            Icons.arrow_forward_ios,
-                            color: Colors.black87,
-                            size: 34
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              )
-            ),
-          );
-        }
-        );  
-      }
+            );
+          },
+        );
+      },
     );
   }
+
   // ##########
-  Color getBtnColor(value){
+  Color getBtnColor(value) {
     return [Btn.del, Btn.clr].contains(value)
-        ?Colors.blueGrey
-        :[
-          Btn.multiply,
-          Btn.add,
-          Btn.subtract,
-          Btn.divide,
-          Btn.calculate,
-        ].contains(value)
-          ? Colors.orange
-          : Color.fromARGB(255, 200, 200, 200);// const Color.fromARGB(255, 47, 47, 47);
+        ? Colors.blueGrey
+        : [
+            Btn.multiply,
+            Btn.add,
+            Btn.subtract,
+            Btn.divide,
+            Btn.calculate,
+          ].contains(value)
+        ? Colors.orange
+        : Color.fromARGB(
+            255,
+            200,
+            200,
+            200,
+          ); // const Color.fromARGB(255, 47, 47, 47);
+  }
+
+  List<String> tokenize(String expr) {
+    List<String> tokens = [];
+    String number = "";
+
+    for (int i = 0; i < expr.length; i++) {
+      String c = expr[i];
+
+      if ("0123456789.".contains(c)) {
+        number += c;
+      } else {
+        if (number.isNotEmpty) {
+          tokens.add(number);
+          number = "";
+        }
+
+        if ("()+-×÷".contains(c)) {
+          tokens.add(c);
+        }
+      }
+    }
+
+    if (number.isNotEmpty) {
+      tokens.add(number);
+    }
+
+    return tokens;
+  }
+
+  int findMainOperator(List<String> tokens) {
+    int bracketDepth = 0;
+
+    // Search from right to left.
+    // + and - have the lowest precedence.
+
+    for (int i = tokens.length - 1; i >= 0; i--) {
+      String token = tokens[i];
+
+      if (token == ")")
+        bracketDepth++;
+      else if (token == "(")
+        bracketDepth--;
+
+      if (bracketDepth != 0) continue;
+
+      if (token == "+" || token == "-") {
+        return i;
+      }
+    }
+
+    // Second pass for × and ÷
+
+    bracketDepth = 0;
+
+    for (int i = tokens.length - 1; i >= 0; i--) {
+      String token = tokens[i];
+
+      if (token == ")")
+        bracketDepth++;
+      else if (token == "(")
+        bracketDepth--;
+
+      if (bracketDepth != 0) continue;
+
+      if (token == "×" || token == "÷") {
+        return i;
+      }
+    }
+
+    return -1;
+  }
+
+  // recursive function to build expression tree
+  TutorialNode buildTree(List<String> tokens) {
+    // Single number
+    if (tokens.length == 1) {
+      return TutorialNode(tokens[0]);
+    }
+
+    // Remove outer brackets
+    if (tokens.first == "(" && tokens.last == ")") {
+      int depth = 0;
+      bool removable = true;
+
+      for (int i = 0; i < tokens.length; i++) {
+        if (tokens[i] == "(") depth++;
+        if (tokens[i] == ")") depth--;
+
+        // If we reach depth 0 before the last token,
+        // these brackets are NOT an outer pair.
+        if (depth == 0 && i != tokens.length - 1) {
+          removable = false;
+          break;
+        }
+      }
+
+      if (removable) {
+        return buildTree(tokens.sublist(1, tokens.length - 1));
+      }
+    }
+
+    int opIndex = findMainOperator(tokens);
+
+    if (opIndex == -1) {
+      throw Exception("Couldn't parse expression.");
+    }
+
+    return TutorialNode(
+      tokens[opIndex],
+      left: buildTree(tokens.sublist(0, opIndex)),
+      right: buildTree(tokens.sublist(opIndex + 1)),
+    );
+  }
+
+  // HELPER FUNCTIONS:
+  // 1. tree evaluating function -> evaluates a branch
+  double evaluateTree(TutorialNode node) {
+    if (node.isLeaf) {
+      return double.parse(node.value);
+    }
+
+    final left = evaluateTree(node.left!);
+    final right = evaluateTree(node.right!);
+
+    switch (node.value) {
+      case "+":
+        return left + right;
+
+      case "-":
+        return left - right;
+
+      case "×":
+        return left * right;
+
+      case "÷":
+        return left / right;
+    }
+
+    throw Exception("Unknown operator");
+  }
+
+  // 2. turn tree back into text
+  String treeToExpression(TutorialNode node) {
+    if (node.isLeaf) {
+      return node.value;
+    }
+
+    String left = treeToExpression(node.left!);
+    String right = treeToExpression(node.right!);
+
+    if (!node.left!.isLeaf) {
+      left = "($left)";
+    }
+
+    if (!node.right!.isLeaf) {
+      right = "($right)";
+    }
+
+    return "$left${node.value}$right";
+  }
+
+  // 3. copy the tree
+  TutorialNode cloneTree(TutorialNode node) {
+    return TutorialNode(
+      node.value,
+      left: node.left == null ? null : cloneTree(node.left!),
+      right: node.right == null ? null : cloneTree(node.right!),
+    );
+  }
+
+  // 4. swap tree nodes
+  void replaceNode(
+    TutorialNode current,
+    TutorialNode target,
+    TutorialNode replacement,
+  ) {
+    if (current.left == target) {
+      current.left = replacement;
+      return;
+    }
+
+    if (current.right == target) {
+      current.right = replacement;
+      return;
+    }
+
+    if (current.left != null) {
+      replaceNode(current.left!, target, replacement);
+    }
+
+    if (current.right != null) {
+      replaceNode(current.right!, target, replacement);
+    }
+  }
+
+  // 5. search the tree
+  TutorialNode? findFirstSolvable(TutorialNode node) {
+    if (node.isLeaf) return null;
+
+    // left subtree first
+    final left = findFirstSolvable(node.left!);
+    if (left != null) return left;
+
+    // then right subtree
+    final right = findFirstSolvable(node.right!);
+    if (right != null) return right;
+
+    // if both children are numbers,
+    // this node is ready to solve
+    if (isNumberNode(node.left!) && isNumberNode(node.right!)) {
+      return node;
+    }
+
+    return null;
+  }
+
+  // 6.
+  bool isNumberNode(TutorialNode node) {
+    return node.isLeaf && double.tryParse(node.value) != null;
   }
 
   // Tutorial Engine
@@ -704,7 +899,38 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     helpPage = 0;
     tutorialSteps.clear();
 
+    // TEST //
+
+    TutorialNode tree = buildTree(tokenize(expr));
+
     tutorialSteps.add("Expression:\n$expr");
+
+    while (!tree.isLeaf) {
+      TutorialNode? node = findFirstSolvable(tree);
+
+      if (node == null) break;
+
+      String before = treeToExpression(tree);
+
+      double result = evaluateTree(node);
+
+      tutorialSteps.add("Evaluate:\n\n${treeToExpression(node)} = $result");
+
+      TutorialNode replacement = TutorialNode(result.toString());
+
+      if (node == tree) {
+        tree = replacement;
+      } else {
+        replaceNode(tree, node, replacement);
+      }
+
+      tutorialSteps.add("Expression becomes:\n\n${treeToExpression(tree)}");
+    }
+
+    tutorialSteps.add("Answer:\n${tree.value}");
+    // TEST //
+
+    /* tutorialSteps.add("Expression:\n$expr");
 
     final twoBracketPattern =
     RegExp(r'^\(([^()]+)\)([×÷])\(([^()]+)\)$');
@@ -831,11 +1057,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
     tutorialSteps.add(
       "Answer:\n$result",
-    );
+    );*/
   }
 
-
-  // Test Functions 
+  // Test Functions
   /*
   void loadTestTutorial() {
     helpPage = 0;
