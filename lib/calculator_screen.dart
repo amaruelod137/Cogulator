@@ -2,6 +2,7 @@ import 'package:basic_calculator/button_values.dart';
 import 'package:flutter/material.dart';
 import 'package:math_expressions/math_expressions.dart';
 import 'dart:async';
+import 'package:flutter/services.dart';
 
 class TutorialNode {
   String value;
@@ -36,8 +37,12 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   double holdProgress = 0.0;
   bool longPressTriggered = false;
 
-  // display functions
+  // display variables
   List<String> incorrectGuesses = [];
+  Set<String> pressedButtons = {};
+  Color promptColor = Colors.black;
+  double promptScale = 1.0;
+  Timer? promptTimer;
 
   // tutorial page variables
   bool showTutorialHint = false;
@@ -50,6 +55,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     const double horizontalPadding = 12;
     final buttonAreaWidth = screenSize.width - (horizontalPadding * 2);
     return Scaffold(
+      backgroundColor: const Color(0xFF067D79),
       body: SafeArea(
         bottom: false,
         child: Stack(
@@ -80,7 +86,10 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                                     index -
                                     1],
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(fontSize: 20),
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  color: Colors.black,
+                                ),
                               ),
                             );
                           },
@@ -110,6 +119,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                                     style: const TextStyle(
                                       fontSize: 35,
                                       fontWeight: FontWeight.bold,
+                                      color: Colors.black,
                                     ),
                                     textAlign: TextAlign.end,
                                   ),
@@ -121,7 +131,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                                     formula,
                                     style: const TextStyle(
                                       fontSize: 20,
-                                      color: Colors.grey,
+                                      color: Color.fromARGB(255, 67, 67, 67),
                                     ),
                                     textAlign: TextAlign.end,
                                   ),
@@ -144,7 +154,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                       "💡 For answer hold '='",
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.grey,
+                        color: Colors.black,
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -193,7 +203,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                       ),
                       decoration: BoxDecoration(
                         color: Color.fromARGB(255, 49, 50, 114),
-                        borderRadius: BorderRadius.circular(2),
+                        border: Border(
+                          top: BorderSide(color: Colors.white, width: 1),
+                          left: BorderSide(color: Colors.white, width: 1),
+                          right: BorderSide(color: Color(0xFF1F2050), width: 2),
+                          bottom: BorderSide(
+                            color: Color(0xFF1F2050),
+                            width: 2,
+                          ),
+                        ),
                       ),
                       child: const Text(
                         "<< Step-by-step guide",
@@ -213,84 +231,152 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     );
   }
 
-  Widget buildButton(value) {
-    return Padding(
-      padding: const EdgeInsets.all(2.0),
+  Widget buildDialogButton({
+    required String text,
+    required VoidCallback? onTap,
+  }) {
+    final disabled = onTap == null;
 
+    return Container(
+      width: 70,
+      height: 38,
+      decoration: const BoxDecoration(
+        border: Border(
+          top: BorderSide(color: Colors.white, width: 2),
+          left: BorderSide(color: Colors.white, width: 2),
+          right: BorderSide(color: Color(0xFF808080), width: 2),
+          bottom: BorderSide(color: Color(0xFF808080), width: 2),
+        ),
+      ),
       child: Material(
-        color: getBtnColor(value),
-        clipBehavior: Clip.hardEdge,
-        shape: RoundedRectangleBorder(
-          side: BorderSide(
-            //           color: Color.lerp(getBtnBorderColor(value), Colors.black, 0.25)!,
-            color: getBtnBorderColor(value).withValues(alpha: 0.8),
-            width: 2,
+        color: disabled ? const Color(0xFFD8D8D8) : const Color(0xFFC8C8C8),
+        child: InkWell(
+          onTap: onTap,
+          child: Center(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 20,
+                color: disabled ? Colors.grey : Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-          borderRadius: BorderRadius.zero, //BorderRadius.circular(100),
+        ),
+      ),
+    );
+  }
+
+  Widget buildButton(value) {
+    final pressed = pressedButtons.contains(value);
+
+    return Padding(
+      padding: const EdgeInsets.all(2),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: pressed ? const Color(0xFF808080) : Colors.white,
+              width: 2,
+            ),
+            left: BorderSide(
+              color: pressed ? const Color(0xFF808080) : Colors.white,
+              width: 2,
+            ),
+            right: BorderSide(
+              color: pressed ? Colors.white : const Color(0xFF808080),
+              width: 2,
+            ),
+            bottom: BorderSide(
+              color: pressed ? Colors.white : const Color(0xFF808080),
+              width: 2,
+            ),
+          ),
         ),
 
-        child: InkWell(
-          // tap/hold
-          onTapDown: (_) {
-            if (value == Btn.calculate) {
-              startRevealHold();
-            }
-          },
+        child: Material(
+          color: getBtnColor(value),
+          clipBehavior: Clip.hardEdge,
 
-          onTapUp: (_) {
-            if (value == Btn.calculate) {
-              cancelRevealHold();
-            }
-          },
+          /*          shape: RoundedRectangleBorder(
+            side: BorderSide(
+              color: getBtnBorderColor(value).withValues(alpha: 0.8),
+              width: 2,
+            ),
+            borderRadius: BorderRadius.zero, //BorderRadius.circular(100),
+          ),*/
+          child: InkWell(
+            // tap/hold
+            onTapDown: (_) {
+              setState(() {
+                pressedButtons.add(value);
+              });
+              if (value == Btn.calculate) {
+                startRevealHold();
+              }
+            },
 
-          onTapCancel: () {
-            if (value == Btn.calculate) {
-              cancelRevealHold();
-            }
-          },
+            onTapUp: (_) {
+              setState(() {
+                pressedButtons.remove(value);
+              });
+              if (value == Btn.calculate) {
+                cancelRevealHold();
+              }
+            },
 
-          // regualar tap
-          onTap: () {
-            if (value == Btn.calculate && longPressTriggered) {
-              longPressTriggered = false;
-              return;
-            }
-            onBtnTap(value);
-          },
+            onTapCancel: () {
+              setState(() {
+                pressedButtons.remove(value);
+              });
+              if (value == Btn.calculate) {
+                cancelRevealHold();
+              }
+            },
 
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              if (value == Btn.calculate && holdProgress > 0)
-                SizedBox(
-                  width: 70,
-                  height: 70,
-                  child: CircularProgressIndicator(
-                    value: holdProgress,
-                    strokeWidth: 4,
+            // regualar tap
+            onTap: () {
+              if (value == Btn.calculate && longPressTriggered) {
+                longPressTriggered = false;
+                return;
+              }
+              onBtnTap(value);
+            },
+
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                if (value == Btn.calculate && holdProgress > 0)
+                  SizedBox(
+                    width: 70,
+                    height: 70,
+                    child: CircularProgressIndicator(
+                      value: holdProgress,
+                      strokeWidth: 4,
+                    ),
+                  ),
+
+                Text(
+                  value,
+                  style: TextStyle(
+                    color:
+                        [
+                          Btn.del,
+                          Btn.clr,
+                          Btn.multiply,
+                          Btn.divide,
+                          Btn.subtract,
+                          Btn.add,
+                          Btn.calculate,
+                        ].contains(value)
+                        ? Colors.white
+                        : Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 36,
                   ),
                 ),
-
-              Text(
-                value,
-                style: TextStyle(
-                  color:
-                      [
-                        Btn.multiply,
-                        Btn.divide,
-                        Btn.add,
-                        Btn.subtract,
-                        Btn.calculate,
-                        Btn.del,
-                        Btn.clr,
-                      ].contains(value)
-                      ? Colors.white
-                      : Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 36,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -305,8 +391,13 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     return Container(
       width: width,
       margin: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        border: Border.all(color: Color.fromARGB(255, 200, 200, 200), width: 2),
+      decoration: const BoxDecoration(
+        border: Border(
+          top: BorderSide(color: Colors.white, width: 2),
+          left: BorderSide(color: Colors.white, width: 2),
+          right: BorderSide(color: Color(0xFF808080), width: 2),
+          bottom: BorderSide(color: Color(0xFF808080), width: 2),
+        ),
       ),
       child: Column(
         children: [
@@ -327,20 +418,37 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
             alignment: Alignment.center,
 
-            child: Text(
-              title.toUpperCase(),
-              // textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.black,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 2,
+            child: AnimatedScale(
+              scale: title == promptMessage ? promptScale : 1.0,
+              duration: const Duration(milliseconds: 150),
+              child: Text(
+                title.toUpperCase(),
+                // textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: title == promptMessage ? promptColor : Colors.black,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
+                ),
               ),
             ),
           ),
 
           // Panel contents
-          Expanded(child: child),
+          Expanded(
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFFFAFCFB),
+                border: Border(
+                  top: BorderSide(color: Color(0xFF808080), width: 2),
+                  left: BorderSide(color: Color(0xFF808080), width: 2),
+                  right: BorderSide(color: Colors.white, width: 2),
+                  bottom: BorderSide(color: Colors.white, width: 2),
+                ),
+              ),
+              child: child,
+            ),
+          ),
         ],
       ),
     );
@@ -477,16 +585,21 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
     if (guess != null && answer != null && guess == answer) {
       setState(() {
-        promptMessage = "Well done!";
+        promptMessage = "You did it :)";
         isGuessing = false;
         canRefresh = true;
       });
+
+      animatePrompt(Colors.green);
     } else {
       setState(() {
         incorrectGuesses.add(expression);
-        promptMessage = "Try again";
+        promptMessage = "Incorrect :(";
         expression = "";
       });
+
+      animatePrompt(Colors.red);
+      HapticFeedback.mediumImpact();
     }
   }
 
@@ -516,6 +629,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
       isGuessing = false;
       correctAnswer = "";
       incorrectGuesses = [];
+      showTutorialHint = false;
     });
   }
 
@@ -545,6 +659,22 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     );
   }
 
+  void animatePrompt(Color color) {
+    promptTimer?.cancel();
+
+    setState(() {
+      promptColor = color;
+      promptScale = 1.15;
+    });
+
+    promptTimer = Timer(const Duration(milliseconds: 250), () {
+      setState(() {
+        promptScale = 1.0;
+        promptColor = Colors.black;
+      });
+    });
+  }
+
   // modal overlay for tutorial popup window
   void showHelpPopup() {
     showDialog(
@@ -555,16 +685,18 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             return Dialog(
               backgroundColor: Colors.transparent,
               elevation: 0,
-              insetPadding: const EdgeInsets.all(4),
+              insetPadding: const EdgeInsets.all(8),
               child: Container(
                 width: double.infinity,
                 height: MediaQuery.of(context).size.height * 0.85,
 
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 200, 200, 200),
-                  border: Border.all(
-                    color: const Color.fromARGB(255, 119, 119, 119),
-                    width: 3,
+                decoration: const BoxDecoration(
+                  color: Color.fromARGB(255, 200, 200, 200),
+                  border: Border(
+                    top: BorderSide(color: Colors.white, width: 2),
+                    left: BorderSide(color: Colors.white, width: 2),
+                    right: BorderSide(color: Color(0xFF808080), width: 2),
+                    bottom: BorderSide(color: Color(0xFF808080), width: 2),
                   ),
                 ),
 
@@ -609,35 +741,26 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           // previous page arrow
-                          IconButton(
-                            onPressed: () {
-                              if (helpPage > 0) {
-                                setDialogState(() {
-                                  helpPage--;
-                                });
-                              }
-                            },
-                            icon: const Icon(
-                              Icons.arrow_back_ios,
-                              color: Colors.black87,
-                              size: 34,
-                            ),
+                          buildDialogButton(
+                            text: "◀",
+                            onTap: helpPage > 0
+                                ? () {
+                                    setDialogState(() {
+                                      helpPage--;
+                                    });
+                                  }
+                                : null,
                           ),
-
                           // next page arrow
-                          IconButton(
-                            onPressed: () {
-                              if (helpPage < tutorialSteps.length - 1) {
-                                setDialogState(() {
-                                  helpPage++;
-                                });
-                              }
-                            },
-                            icon: const Icon(
-                              Icons.arrow_forward_ios,
-                              color: Colors.black87,
-                              size: 34,
-                            ),
+                          buildDialogButton(
+                            text: "▶",
+                            onTap: helpPage < tutorialSteps.length - 1
+                                ? () {
+                                    setDialogState(() {
+                                      helpPage++;
+                                    });
+                                  }
+                                : null,
                           ),
                         ],
                       ),
@@ -663,13 +786,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             Btn.divide,
             Btn.calculate,
           ].contains(value)
-        ? Colors.orange
-        : Color.fromARGB(
-            255,
-            200,
-            200,
-            200,
-          ); // const Color.fromARGB(255, 47, 47, 47);
+        ? Color.fromARGB(255, 255, 203, 0)
+        : Color.fromARGB(255, 200, 200, 200);
   }
 
   List<String> tokenize(String expr) {
@@ -702,9 +820,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
   int findMainOperator(List<String> tokens) {
     int bracketDepth = 0;
-
-    // Search from right to left.
-    // + and - have the lowest precedence.
 
     for (int i = tokens.length - 1; i >= 0; i--) {
       String token = tokens[i];
@@ -759,8 +874,6 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         if (tokens[i] == "(") depth++;
         if (tokens[i] == ")") depth--;
 
-        // If we reach depth 0 before the last token,
-        // these brackets are NOT an outer pair.
         if (depth == 0 && i != tokens.length - 1) {
           removable = false;
           break;
@@ -901,7 +1014,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 
       double result = evaluateTree(node);
 
-      tutorialSteps.add("Evaluate the following:\n\n${treeToExpression(node)} = $result");
+      tutorialSteps.add(
+        "Evaluate the following:\n\n${treeToExpression(node)} = $result",
+      );
 
       TutorialNode replacement = TutorialNode(result.toString());
 
