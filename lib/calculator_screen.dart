@@ -298,13 +298,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
           color: getBtnColor(value),
           clipBehavior: Clip.hardEdge,
 
-          /*          shape: RoundedRectangleBorder(
-            side: BorderSide(
-              color: getBtnBorderColor(value).withValues(alpha: 0.8),
-              width: 2,
-            ),
-            borderRadius: BorderRadius.zero, //BorderRadius.circular(100),
-          ),*/
+          
           child: InkWell(
             // tap/hold
             onTapDown: (_) {
@@ -790,6 +784,8 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         : Color.fromARGB(255, 200, 200, 200);
   }
 
+  // Tutorial Engine
+  // Building expression trees
   List<String> tokenize(String expr) {
     List<String> tokens = [];
     String number = "";
